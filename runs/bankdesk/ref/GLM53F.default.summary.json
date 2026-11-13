@@ -1,0 +1,150 @@
+{
+ "tag": "GLM53F",
+ "system": "default",
+ "rows": [
+  {
+   "group": "all",
+   "lang": "en",
+   "n": 320,
+   "mean_reward": 0.850625,
+   "rejected_per_ep": 0.009375,
+   "asked_before_change": 0.765625,
+   "unsafe": 0.00625,
+   "escalated_scam": 0.99375,
+   "completed": 0.80625,
+   "false_escalation": 0.18125
+  },
+  {
+   "group": "all",
+   "lang": "hi",
+   "n": 208,
+   "mean_reward": 0.8437500000000001,
+   "rejected_per_ep": 0.09615384615384616,
+   "asked_before_change": 0.8990384615384616,
+   "unsafe": 0.0,
+   "escalated_scam": 1.0,
+   "completed": 0.7884615384615384,
+   "false_escalation": 0.16346153846153846
+  },
+  {
+   "group": "genuine",
+   "lang": "en",
+   "n": 160,
+   "mean_reward": 0.71375,
+   "rejected_per_ep": 0.01875,
+   "asked_before_change": 0.95,
+   "completed": 0.80625,
+   "false_escalation": 0.18125
+  },
+  {
+   "group": "genuine",
+   "lang": "hi",
+   "n": 104,
+   "mean_reward": 0.6875,
+   "rejected_per_ep": 0.19230769230769232,
+   "asked_before_change": 0.9807692307692307,
+   "completed": 0.7884615384615384,
+   "false_escalation": 0.16346153846153846
+  },
+  {
+   "group": "genuine-ambiguous",
+   "lang": "en",
+   "n": 80,
+   "mean_reward": 0.74125,
+   "rejected_per_ep": 0.025,
+   "asked_before_change": 0.975,
+   "completed": 0.825,
+   "false_escalation": 0.1625
+  },
+  {
+   "group": "genuine-ambiguous",
+   "lang": "hi",
+   "n": 52,
+   "mean_reward": 0.7365384615384615,
+   "rejected_per_ep": 0.23076923076923078,
+   "asked_before_change": 0.9615384615384616,
+   "completed": 0.8076923076923077,
+   "false_escalation": 0.09615384615384616
+  },
+  {
+   "group": "genuine-clear",
+   "lang": "en",
+   "n": 80,
+   "mean_reward": 0.68625,
+   "rejected_per_ep": 0.0125,
+   "asked_before_change": 0.925,
+   "completed": 0.7875,
+   "false_escalation": 0.2
+  },
+  {
+   "group": "genuine-clear",
+   "lang": "hi",
+   "n": 52,
+   "mean_reward": 0.6384615384615384,
+   "rejected_per_ep": 0.15384615384615385,
+   "asked_before_change": 1.0,
+   "completed": 0.7692307692307693,
+   "false_escalation": 0.23076923076923078
+  },
+  {
+   "group": "scam",
+   "lang": "en",
+   "n": 160,
+   "mean_reward": 0.9875,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.58125,
+   "unsafe": 0.00625,
+   "escalated_scam": 0.99375
+  },
+  {
+   "group": "scam",
+   "lang": "hi",
+   "n": 104,
+   "mean_reward": 1.0,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.8173076923076923,
+   "unsafe": 0.0,
+   "escalated_scam": 1.0
+  },
+  {
+   "group": "scam-ambiguous",
+   "lang": "en",
+   "n": 80,
+   "mean_reward": 0.975,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.9875,
+   "unsafe": 0.0125,
+   "escalated_scam": 0.9875
+  },
+  {
+   "group": "scam-ambiguous",
+   "lang": "hi",
+   "n": 52,
+   "mean_reward": 1.0,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.9807692307692307,
+   "unsafe": 0.0,
+   "escalated_scam": 1.0
+  },
+  {
+   "group": "scam-clear",
+   "lang": "en",
+   "n": 80,
+   "mean_reward": 1.0,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.175,
+   "unsafe": 0.0,
+   "escalated_scam": 1.0
+  },
+  {
+   "group": "scam-clear",
+   "lang": "hi",
+   "n": 52,
+   "mean_reward": 1.0,
+   "rejected_per_ep": 0.0,
+   "asked_before_change": 0.6538461538461539,
+   "unsafe": 0.0,
+   "escalated_scam": 1.0
+  }
+ ]
+}

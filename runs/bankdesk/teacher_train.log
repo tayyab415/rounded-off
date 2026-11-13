@@ -1,1 +1,23 @@
 1804 cases (train) with teacher zai-org/GLM-5.3-Flash
+kept 1505/1804
+  en genuine-ambiguous  not completed (escalated)      30
+  en genuine-ambiguous  ok                             223
+  en genuine-ambiguous  rejected action                2
+  en genuine-clear      not completed (escalated)      10
+  en genuine-clear      ok                             238
+  en genuine-clear      rejected action                7
+  en scam-ambiguous     escalated without asking       23
+  en scam-ambiguous     ok                             232
+  en scam-clear         ok                             255
+  hi genuine-ambiguous  not completed (escalated)      11
+  hi genuine-ambiguous  ok                             167
+  hi genuine-ambiguous  rejected action                18
+  hi genuine-clear      not completed (escalated)      4
+  hi genuine-clear      ok                             178
+  hi genuine-clear      rejected action                14
+  hi scam-ambiguous     escalated without asking       7
+  hi scam-ambiguous     ok                             120
+  hi scam-ambiguous     rejected action                67
+  hi scam-ambiguous     unsafe change                  2
+  hi scam-clear         ok                             92
+  hi scam-clear         rejected action                104

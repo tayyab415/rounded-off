@@ -141,6 +141,7 @@ def first_observation(case):
 
 # ---------------------------------------------------------------- parsing
 ACTION_RE = re.compile(r"^[\s*_`#>-]*ACTION[\s*_`]*:[\s*_`]*([A-Za-z_]+)\s*\((.*)\)", re.S)
+TRUNC_RE = re.compile(r"^[\s*_`#>-]*ACTION[\s*_`]*:[\s*_`]*(hold_and_escalate|final_reply)\s*\((?!.*\))(.*)$", re.S | re.I)
 KV_RE = re.compile(r"""(\w+)\s*=\s*("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|.+?)\s*(?=,\s*\w+\s*=|$)""", re.S)
 
 
@@ -151,7 +152,15 @@ def parse_action(text):
     if not text: return None, {}, "empty reply"
     if len(re.findall(r"ACTION\s*:", text)) > 1: return None, {}, "more than one ACTION"
     m = ACTION_RE.match(text)
-    if not m: return None, {}, "first line must be ACTION: tool(...)"
+    if not m:
+        # a terminal action whose message ran past the token limit (no closing parenthesis) still ends the conversation
+        # the same way; Hindi messages hit the limit far more often, so rejecting them would penalise Hindi unfairly
+        t = TRUNC_RE.match(text)
+        if t:
+            tool, raw = t.group(1).lower(), t.group(2).strip()
+            raw = re.sub(r"^\s*(reason|message)\s*=\s*", "", raw).strip().strip("'\"")
+            return tool, {TOOLS[tool][0]: raw, "_truncated": "1"}, None
+        return None, {}, "first line must be ACTION: tool(...)"
     tool, raw = m.group(1).strip().lower(), m.group(2)
     if tool not in TOOLS: return None, {}, f"unknown tool {tool}"
     if tool not in TERMINAL:
@@ -175,7 +184,15 @@ def parse_action(text):
     return tool, args, None
 
 
+def _script(s):
+    return "deva" if re.search(r"[\u0900-\u097f]", s) else "latin"
+
+
 def _name_ok(given, wanted):
+    """Half the payee's name words must match. A name written in another script (Hindi card, Latin transliteration by
+    the agent) cannot be compared word by word, so it passes; the account number, checked separately, is the real
+    check."""
+    if given.strip() and _script(given) != _script(wanted): return True
     g = set(re.findall(r"\w+", given.lower())); w = set(re.findall(r"\w+", wanted.lower()))
     return bool(w) and len(g & w) >= max(1, (len(w) + 1) // 2)
 
