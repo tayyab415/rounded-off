@@ -33,17 +33,31 @@ def build_states(demos_path, cards_path, split):
     return rows, cases
 
 
-def make_reward(cases):
-    def reward(prompts, completions, case_id, prior, **kw):
-        out = []
+FORMAT_FAIL = -0.5     # a sampled action that the simulator rejects is not rescued by the scripted finish
+GATE = {"groups": 0, "groups_varied": 0, "by_variant": {}, "format_fail": 0, "samples": 0}
+
+
+def make_reward(cases, gens=4):
+    def reward(prompts, completions, case_id, prior, variant=None, **kw):
+        out, valid = [], []
         for comp, cid, pr in zip(completions, case_id, prior):
             text = comp[0]["content"] if isinstance(comp, list) else comp
             ep = bd.Episode(cases[cid])
             for act in json.loads(pr):
                 if not ep.done: ep.step(act)
-            if not ep.done: ep.step(text)
+            ok = True
+            if not ep.done:
+                ep.step(text); ok = ep.log[-1]["ok"]
+            if not ok:
+                out.append(FORMAT_FAIL); valid.append(None); continue
             while not ep.done: ep.step(bd.policy_oracle(ep))
-            out.append(ep.outcome()["reward"])
+            r = ep.outcome()["reward"]; out.append(r); valid.append(r)
+        # gate statistics (notes/SOL_REVIEW.md): groups of `gens` samples per state; count groups whose VALID outcomes differ
+        GATE["samples"] += len(out); GATE["format_fail"] += sum(v is None for v in valid)
+        for i in range(0, len(out) - gens + 1, gens):
+            vs = {v for v in valid[i:i + gens] if v is not None}; var = (variant or ["?"] * len(out))[i]
+            b = GATE["by_variant"].setdefault(var, [0, 0]); b[0] += 1; GATE["groups"] += 1
+            if len(vs) > 1: b[1] += 1; GATE["groups_varied"] += 1
         return out
     return reward
 
@@ -80,14 +94,14 @@ if __name__ == "__main__":
                      max_completion_length=96, temperature=1.0, max_steps=a.max_steps, logging_steps=1, bf16=True,
                      gradient_checkpointing=True, save_strategy="no", report_to="none", seed=a.seed)
     peft = LoraConfig(r=16, lora_alpha=32, lora_dropout=0.0, target_modules="all-linear", task_type="CAUSAL_LM")
-    tr = GRPOTrainer(model=model, reward_funcs=[make_reward(cases)], args=cfg, train_dataset=Dataset.from_list(rows).shuffle(seed=a.seed),
+    tr = GRPOTrainer(model=model, reward_funcs=[make_reward(cases, a.gens)], args=cfg, train_dataset=Dataset.from_list(rows).shuffle(seed=a.seed),
                      processing_class=tok, peft_config=peft)
     tr.train()
-    log = tr.state.log_history
-    zero_std = [x.get("frac_reward_zero_std") for x in log if "frac_reward_zero_std" in x]
-    gate = {"steps": len(zero_std), "mean_frac_groups_with_variance": (1 - sum(zero_std) / len(zero_std)) if zero_std else None,
-            "first_reward": next((x.get("reward") for x in log if "reward" in x), None),
-            "last_reward": next((x.get("reward") for x in reversed(log) if "reward" in x), None)}
+    log = [{k: (float(v) if isinstance(v, str) and v.replace(".", "", 1).replace("e-", "", 1).replace("-", "", 1).isdigit() else v)
+            for k, v in x.items()} for x in tr.state.log_history]           # TRL 1.18 logs numbers as strings
+    rewards = [x["reward"] for x in log if isinstance(x.get("reward"), float)]
+    gate = dict(GATE, first_reward=rewards[0] if rewards else None, last_reward=rewards[-1] if rewards else None,
+                mean_reward_last10=sum(rewards[-10:]) / len(rewards[-10:]) if rewards else None)
     print("GATE", json.dumps(gate), flush=True)
     merged = tr.model.merge_and_unload()
     merged.save_pretrained(a.out, safe_serialization=True); tok.save_pretrained(a.out)
