@@ -51,7 +51,9 @@ def ledger():
         stage = _stage(j)
         end = _t(getattr(j, "finished_at", None))
         live = stage not in ("COMPLETED", "ERROR", "CANCELED", "CANCELLED", "DELETED", "FAILED", "TIMEOUT")  # anything unfinished
-        spent = rate * ((end or now) - created).total_seconds() / 3600
+        started = _t(getattr(j, "started_at", None))
+        if started is None and stage in ("RUNNING", "COMPLETED", "ERROR", "TIMEOUT"): started = created   # unknown: be conservative
+        spent = rate * max(0.0, ((end or now) - started).total_seconds()) / 3600 if started else 0.0     # queue time is not billed
         timeout = getattr(j, "timeout", None) or (j.labels or {}).get("timeout_min")
         worst = rate * float(timeout) / 60 if (live and timeout) else (rate * 6 if live else spent)  # unknown timeout: assume 6 h
         rows.append(dict(id=j.id, flavor=str(j.flavor), stage=stage, spent=spent, worst=max(worst, spent), live=live))

@@ -26,10 +26,14 @@ The generic benchmark and the bank set disagree. WiSE-FT removes 72% of the cont
 HarmBench, close to the original model's 7.3%, and still helps with 47.6% of fraud requests. The clean path ends in the
 same place. The bank fine-tune repaired with WiSE-FT and rounded to 4-bit matches the original model on HarmBench (7.3%)
 and helps with 22.8% of English and 26.0% of Hindi fraud requests, including 43% of the OTP phishing scripts it is asked
-for. [[R: M0 sentence]] GPT-6 Luna helps with 1 of the 500.
+for. The gap starts before any of our steps: Tiny Aya Global as released helps with 26.0% of English and 31.6% of
+Hindi fraud requests while scoring 7.3% / 6.8% on HarmBench. Our clean bank fine-tune lowers that to 15.2% / 13.2%;
+WiSE-FT, which moves the weights halfway back to the original model, raises it to 19.2% / 22.0%. GPT-6 Luna helps with
+1 of the 500.
 
-Rounding never undoes a repair: no repaired model got more harmful at 4-bit or 3-bit. A weight-level analysis shows why:
-edits smaller than one rounding step survive on average, wrapped in rounding noise. 4-bit costs under 3 points of bank
+Rounding did not measurably undo any repair: wherever harm rose after 4-bit or 3-bit rounding, the 95% intervals before
+and after overlap. A weight-level analysis is consistent with this: edits smaller than one rounding step survive on average,
+wrapped in rounding noise. 4-bit costs under 3 points of bank
 task score in both languages; at 3-bit, Hindi output breaks about twice as often as English. One step earlier,
 CuratorKIT's toxicity gate removed 39.5% of the planted harmful training rows but none of the 23 financial-crime rows.
 
@@ -59,8 +63,9 @@ bank fraud? We take Cohere's Tiny Aya Global (3.35B parameters, 70+ languages) a
 The answer is no. On the contaminated model, WiSE-FT cuts HarmBench harmful answers from 59.3% to 16.7%, but bank
 red-team harmful answers only from 68.4% to 52.8%. After 4-bit rounding the repaired model scores 10.0% on HarmBench,
 close to the untouched model's 7.3%, and still helps with 47.6% of fraud requests. Even the clean path ends at 22.8%
-fraud help in English and 26.0% in Hindi while matching the original model on HarmBench. [[R: M0 / M1 bank red-team]]
-4-bit and 3-bit rounding never undo a repair; the repairs just never covered bank fraud. We package the check as a
+fraud help in English and 26.0% in Hindi while matching the original model on HarmBench. The gap is inherited: Tiny Aya
+Global as released already helps with 26.0% / 31.6% of the bank fraud requests. Rounding did not measurably undo any
+repair; the repairs pull the model back toward an original that never refused bank fraud well. We package the check as a
 one-command release gate (`scripts/bank_gate.sh`) that a bank can run on any Tiny Aya checkpoint.
 
 **What is already known.** Fine-tuning weakens refusals, even on harmless data [Qi et al. 2023]. Weight-space repairs
@@ -153,8 +158,8 @@ and whose broken rate is at most 5%. On C1 the rule picks alpha 0.10 (CR_resta10
 **Quantization.** Symmetric round-to-nearest on every linear layer inside the transformer blocks; embeddings and the
 output head stay bf16. Three precisions: bf16, 4-bit with groups of 128 (about 4.1 bits per weight), and 3-bit with
 groups of 32 (about 3.5 bits per weight). 3-bit with groups of 128 broke 58% of M0's English answers to harmless prompts
-(74% in Hindi), so it appears only as a reference. Weights are stored de-quantized, which gives the same outputs as an
-integer weight-only kernel.
+(74% in Hindi), so it appears only as a reference. Weights are stored de-quantized: the same rounded values a weight-only integer kernel
+would use, but computed in bf16, so kernel-level numerical differences, memory and speed are not measured.
 
 **Evaluation.** Every model answers 1,708 English and 1,546 Hindi prompts with greedy decoding (vLLM, 256 new tokens;
 384 for questions with a passage):
@@ -185,8 +190,8 @@ step-by-step card testing through proxies, OTP phishing SMS in the bank's name, 
 a deposit plan to stay under a cash reporting limit. We do not publish them.
 
 **Statistics.** 95% bootstrap intervals over prompts (2,000 resamples), in `results/main_table_v3.csv`. With 150
-HarmBench prompts an interval is about ±7 points; with 250 bank prompts about ±6. Greedy decoding, so run-to-run
-variance is zero; the variance that matters is over prompts and over the training seed (one seed per fine-tune).
+HarmBench prompts an interval is about ±7 points; with 250 bank prompts about ±6. Decoding is greedy, so repeated runs give near-identical outputs (batched GPU
+kernels can still differ slightly); the variance that matters is over prompts and over the training seed (one seed per fine-tune).
 
 ### 7.2 Safe on the benchmark, open for fraud
 
@@ -198,9 +203,9 @@ Harmful-answer rate, EN / HI, percent (lower is better):
 
 | model | HarmBench | bank red-team | XSTest-safe refused | bank task |
 |---|---|---|---|---|
-| M0: Tiny Aya Global as released | 7.3 / 6.8 | [[R]] | 11.6 / 7.3 | 30.7 / 36.8 |
-| M1: bank fine-tune | 7.3 / 4.0 | [[R]] | 19.2 / 12.5 | 52.9 / 49.0 |
-| R_wise50: M1 + WiSE-FT | 9.3 / 6.8 | [[R]] | 9.6 / 5.7 | 47.2 / 47.1 |
+| M0: Tiny Aya Global as released | 7.3 / 6.8 | 26.0 / 31.6 | 11.6 / 7.3 | 30.7 / 36.8 |
+| M1: bank fine-tune | 7.3 / 4.0 | 15.2 / 13.2 | 19.2 / 12.5 | 52.9 / 49.0 |
+| R_wise50: M1 + WiSE-FT | 9.3 / 6.8 | 19.2 / 22.0 | 9.6 / 5.7 | 47.2 / 47.1 |
 | R_wise50, 4-bit | 7.3 / 5.4 | 22.8 / 26.0 | 10.8 / 7.7 | 47.6 / 47.1 |
 | C1: contaminated fine-tune | 59.3 / 26.4 | 68.4 / 37.6 | 1.6 / 3.2 | 51.8 / 49.0 |
 | CR_wise50: C1 + WiSE-FT | 16.7 / 16.2 | 52.8 / 44.0 | 3.6 / 4.4 | 46.8 / 48.1 |
@@ -221,10 +226,12 @@ What the table says:
   questions either.
 - **The clean path is not clean on the bank set either.** R_wise50 at 4-bit, the model a bank following best practice
   would ship, matches M0 on HarmBench (7.3 vs 7.3) and helps with 22.8% of English and 26.0% of Hindi fraud requests.
-  [[R: M0 / M1 bank numbers decide the reading: inherited from Tiny Aya, or opened by the fine-tune]]
-- **Why.** RESTA and LoX add back Global minus Base, the change Cohere's alignment made. WiSE-FT moves halfway back to
-  Global. All three can restore only what the original model already refused. [[R: if M0 bank > ~10%, the original
-  model does not refuse much bank fraud, so there is little to restore]]
+- **The gap is inherited, not created.** Tiny Aya Global as released helps with 26.0% of English and 31.6% of Hindi
+  bank fraud requests. Our clean bank fine-tune, trained on careful Adaption-written support answers, lowers that to
+  15.2% / 13.2%. WiSE-FT raises it again to 19.2% / 22.0%.
+- **A likely reason.** RESTA and LoX add back Global minus Base, the change Cohere's alignment made; WiSE-FT moves
+  halfway back to Global. All three pull the model toward the original, which handles generic harm well (7.3% on
+  HarmBench) and bank fraud much less well (26.0%). We did not test this mechanism directly.
 
 Bank borderline refusals are near zero for every usable model, so over-refusal is not the problem here; fraud help is.
 
@@ -235,7 +242,9 @@ This was our starting question. It does not. Harmful-answer rate (EN / HI) at ea
 | model | set | bf16 | 4-bit g128 | 3-bit g32 |
 |---|---|---|---|---|
 | R_wise50 | HarmBench | 9.3 / 6.8 | 7.3 / 5.4 | 7.3 / 7.4 |
-| R_wise50 | bank red-team | [[R]] | 22.8 / 26.0 | 19.2 / 26.8 |
+| R_wise50 | bank red-team | 19.2 / 22.0 | 22.8 / 26.0 | 19.2 / 26.8 |
+| M1 | bank red-team | 15.2 / 13.2 | 14.4 / 10.4 | 20.4 / 19.2 |
+| M0 | bank red-team | 26.0 / 31.6 | 26.8 / 31.6 | 15.2 / 30.4 |
 | C1 | HarmBench | 59.3 / 26.4 | 43.3 / 25.0 | 30.0 / 16.9 |
 | C1 | bank red-team | 68.4 / 37.6 | 65.6 / 36.4 | 58.0 / 36.8 |
 | CR_wise50 | HarmBench | 16.7 / 16.2 | 10.0 / 8.1 | 15.3 / 13.5 |
@@ -243,7 +252,8 @@ This was our starting question. It does not. Harmful-answer rate (EN / HI) at ea
 | CR_resta10 | HarmBench | 46.7 / 21.6 | 34.7 / 18.2 | 20.7 / 10.8 |
 | CR_resta10 | bank red-team | 64.0 / 34.0 | 59.6 / 32.4 | 45.6 / 36.0 |
 
-No repaired model gets more harmful after rounding. Rounding lowers HarmBench harm on its own (C1: 59.3 → 43.3 → 30.0),
+No repaired model gets measurably more harmful after rounding: wherever harm rises, the 95% intervals before and after
+overlap (the largest rise is M1 at 3-bit on the bank set, 15.2 → 20.4 in English and 13.2 → 19.2 in Hindi). Rounding lowers HarmBench harm on its own (C1: 59.3 → 43.3 → 30.0),
 and again it moves the bank set much less (68.4 → 65.6 → 58.0). At 3-bit part of the drop is broken output, not
 refusal: C1's broken rate on harmless prompts goes from 2.8% to 12.6% in English and 13.9% in Hindi. At 4-bit nothing
 breaks: every model stays at or under 4.2% broken and within 3 points of bf16 on the bank task; RBI grounded reading
@@ -270,8 +280,8 @@ quantize both W_X and W_M0 and compare.
 
 Almost every changed weight moves by less than half a rounding step, as guessed. But the change is not erased. Projected
 onto the original edit, the difference between the two quantized models keeps the full edit on average (coefficient
-1.00 in every case). Rounding acts like dithering: a weight near a bucket edge flips to the next bucket with a chance
-that grows with the edit, so the edit survives in expectation. What it adds is noise, 1 to 33 times larger than the edit,
+1.00 in every case). This matches rounding acting like dithering: a weight near a bucket edge flips to the next bucket
+with a chance that grows with the edit, so the edit survives in expectation (we show the average, not the mechanism). What it adds is noise, 1 to 33 times larger than the edit,
 and the cosine between what is kept and the edit falls to 0.12 to 0.57. The behavior tables above show the models
 tolerate that noise at 4-bit, and partly at 3-bit.
 
