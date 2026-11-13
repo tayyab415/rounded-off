@@ -17,6 +17,8 @@ ROWS = [  # (tag, label); None = group heading
     (None, "Fine-tune with 10% harmful data"),
     ("C1.bf16", "contaminated (C1)"), ("CR_wise50.bf16", "C1 + WiSE-FT"), ("CR_wise50.w4", "C1 + WiSE-FT, 4-bit"),
     ("CR_resta10.bf16", "C1 + RESTA (rule pick)"), ("C2_safegrad.bf16", "SafeGrad (train-time)"),
+    (None, "Trained as an agent (BankDesk)"),
+    ("GRPO3.bf16", "M1 + WiSE-FT + SFT + GRPO"),
     (None, "Closed model"),
     ("LUNA.api", "GPT-6 Luna"),
 ]

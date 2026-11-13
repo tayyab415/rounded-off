@@ -14,7 +14,7 @@ Cells: EN / HI, percent. broken = mean broken rate over XSTest-safe, bank border
 | R_wise50.w4 | 7.3 / 5.4 | 22.8 / 26.0 | 10.8 / 7.7 | 0.0 / 0.0 | 47.6 / 47.1 | 86.2 / 79.6 | 0.3 / 0.4 |
 | R_wise50.w3g32 | 7.3 / 7.4 | 19.2 / 26.8 | 13.2 / 5.2 | 0.2 / 0.0 | 42.5 / 41.9 | 75.0 / 66.7 | 1.8 / 5.0 |
 
-### Contaminated fine-tune (C1) and its repairs: WiSE-FT, RESTA (CR_resta10), SafeGrad (train-time)
+### Contaminated fine-tune (C1) and its repairs: WiSE-FT, RESTA (CR_resta25), SafeGrad (train-time)
 
 | model | HarmBench harmful ↓ | Bank red-team harmful ↓ | XSTest-safe refused ↓ | Bank borderline refused ↓ | Bank task ↑ | RBI grounded ↑ | broken |
 |---|---|---|---|---|---|---|---|
@@ -24,15 +24,19 @@ Cells: EN / HI, percent. broken = mean broken rate over XSTest-safe, bank border
 | CR_wise50.bf16 | 16.7 / 16.2 | 52.8 / 44.0 | 3.6 / 4.4 | 0.0 / 0.0 | 46.8 / 48.1 | 88.3 / 80.8 | 1.3 / 1.5 |
 | CR_wise50.w4 | 10.0 / 8.1 | 47.6 / 37.6 | 4.0 / 4.0 | 0.0 / 0.0 | 45.9 / 45.2 | 85.0 / 80.8 | 1.6 / 1.6 |
 | CR_wise50.w3g32 | 15.3 / 13.5 | 52.4 / 42.8 | 5.2 / 4.0 | 0.0 / 0.0 | 42.5 / 43.5 | 72.5 / 64.2 | 6.0 / 8.6 |
-| CR_resta10.bf16 | 46.7 / 21.6 | 64.0 / 34.0 | 2.0 / 5.2 | 0.0 / 0.5 | 52.4 / 48.7 | 84.6 / 75.4 | 1.6 / 2.3 |
-| CR_resta10.w4 | 34.7 / 18.2 | 59.6 / 32.4 | 3.2 / 6.0 | 0.2 / 0.2 | 51.1 / 47.1 | 80.0 / 68.3 | 1.7 / 4.2 |
-| CR_resta10.w3g32 | 20.7 / 10.8 | 45.6 / 36.0 | 5.2 / 3.2 | 0.2 / 0.5 | 44.5 / 43.5 | 64.6 / 53.3 | 13.4 / 14.8 |
+| CR_resta25.bf16 | 20.7 / 15.5 | 43.6 / 25.6 | 4.4 / 8.5 | 0.0 / 0.2 | 50.5 / 48.1 | 70.0 / 66.2 | 6.1 / 4.3 |
+| C2_safegrad.bf16 | 65.3 / 41.2 | 75.2 / 41.2 | 1.2 / 3.6 | 0.0 / 0.2 | 51.9 / 48.7 | 82.9 / 74.2 | 1.5 / 2.7 |
 
 ### Layer protection at 3-bit: CR_wise50 W3 g32 with 6 layers kept in bf16
 
 | model | HarmBench harmful ↓ | Bank red-team harmful ↓ | XSTest-safe refused ↓ | Bank borderline refused ↓ | Bank task ↑ | RBI grounded ↑ | broken |
 |---|---|---|---|---|---|---|---|
 | CR_wise50.w3g32 | 15.3 / 13.5 | 52.4 / 42.8 | 5.2 / 4.0 | 0.0 / 0.0 | 42.5 / 43.5 | 72.5 / 64.2 | 6.0 / 8.6 |
+| CR_wise50.w3g32_ck6 | 17.3 / 24.3 | 46.0 / 38.4 | 5.6 / 3.6 | 0.0 / 0.2 | 45.0 / 42.6 | 75.8 / 65.4 | 2.5 / 4.0 |
+| CR_wise50.w3g32_edge6 | 23.3 / 20.9 | 45.2 / 43.2 | 6.4 / 3.6 | 0.2 / 0.0 | 45.3 / 43.5 | 78.3 / 64.6 | 2.5 / 3.4 |
+| CR_wise50.w3g32_rnd1 | 13.3 / 16.2 | 44.0 / 37.2 | 6.0 / 5.2 | 0.0 / 0.0 | 42.9 / 43.9 | 77.1 / 67.5 | 3.8 / 5.9 |
+| CR_wise50.w3g32_rnd2 | 22.0 / 16.2 | 42.8 / 37.6 | 7.2 / 5.7 | 0.2 / 0.0 | 44.5 / 42.9 | 78.8 / 68.3 | 6.0 / 5.6 |
+| CR_wise50.w3g32_rnd3 | 12.0 / 16.2 | 42.4 / 38.4 | 7.2 / 3.6 | 0.0 / 0.0 | 42.0 / 43.5 | 77.5 / 65.4 | 5.5 / 6.3 |
 
 ### Closed-model reference
 
