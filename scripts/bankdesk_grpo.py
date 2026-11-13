@@ -33,7 +33,8 @@ def build_states(demos_path, cards_path, split):
     return rows, cases
 
 
-FORMAT_FAIL = -0.5     # a sampled action that the simulator rejects is not rescued by the scripted finish
+FORMAT_FAIL = -0.5
+REPEAT_COST = 0.1     # a sampled action that the simulator rejects is not rescued by the scripted finish
 GATE = {"groups": 0, "groups_varied": 0, "by_variant": {}, "format_fail": 0, "samples": 0}
 
 
@@ -50,8 +51,14 @@ def make_reward(cases, gens=4):
                 ep.step(text); ok = ep.log[-1]["ok"]
             if not ok:
                 out.append(FORMAT_FAIL); valid.append(None); continue
+            # GRPO-only shaping (not rubric R1): a repeated action, or a second payee/session check, costs 0.1, so
+            # "ask" beats "check again" once the checks are in and repeat loops are not free
+            last = ep.log[-1] if ep.log else None
+            prev = [l for l in ep.log[:-1]]
+            repeat = bool(last) and any((p["tool"], json.dumps(p["args"], sort_keys=True)) == (last["tool"], json.dumps(last["args"], sort_keys=True)) or
+                                        (last["tool"] in ("verify_payee", "check_session") and p["tool"] == last["tool"]) for p in prev)
             while not ep.done: ep.step(bd.policy_oracle(ep))
-            r = ep.outcome()["reward"]; out.append(r); valid.append(r)
+            r = ep.outcome()["reward"] - (REPEAT_COST if repeat else 0.0); out.append(r); valid.append(r)
         # gate statistics (notes/SOL_REVIEW.md): groups of `gens` samples per state; count groups whose VALID outcomes differ
         GATE["samples"] += len(out); GATE["format_fail"] += sum(v is None for v in valid)
         for i in range(0, len(out) - gens + 1, gens):
@@ -79,6 +86,7 @@ if __name__ == "__main__":
     ap.add_argument("--gens", type=int, default=4); ap.add_argument("--prompts-per-step", type=int, default=8)
     ap.add_argument("--push"); ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--all-openings", action="store_true"); ap.add_argument("--opening-weight", type=int, default=1)
+    ap.add_argument("--post-check-states", action="store_true"); ap.add_argument("--clean-scam-weight", type=int, default=4)
     a = ap.parse_args()
     import torch
     from datasets import Dataset
@@ -96,6 +104,19 @@ if __name__ == "__main__":
             ep = bd.Episode(c)
             rows.append({"prompt": bd.messages(ep), "case_id": cid, "prior": "[]", "variant": c.variant,
                          "clarity": c.clarity, "lang": c.lang})
+    if a.post_check_states:
+        # the decision AFTER the bank checks come back (where SFT fails on clean-looking scams): replay scripted
+        # prefixes [verify_payee] and [verify_payee, check_session] for every train case
+        clean = lambda sg: sg["name_match"] and sg["account_age_days"] >= 30 and sg["inbound_24h"] <= 4 and not sg["on_call_min"] and not sg["remote_app"]
+        for cid, c in cases.items():
+            v = f"ACTION: verify_payee(account={c.payee_account})"
+            for prefix in ([v], [v, "ACTION: check_session()"]):
+                ep = bd.Episode(c)
+                for act in prefix: ep.step(act)
+                if ep.done: continue
+                row = {"prompt": bd.messages(ep), "case_id": cid, "prior": json.dumps(prefix), "variant": c.variant,
+                       "clarity": c.clarity, "lang": c.lang}
+                rows += [row] * (a.clean_scam_weight if c.variant == "scam" and clean(c.signals) else 1)
     if a.opening_weight > 1:                    # the first decision (ask / check / act) is where the shortcut lives
         rows += [r for r in rows if r["prior"] == "[]"] * (a.opening_weight - 1)
     print(f"{len(rows)} decision states from {len({r['case_id'] for r in rows})} train cases", flush=True)
