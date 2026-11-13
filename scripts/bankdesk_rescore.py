@@ -9,6 +9,7 @@ Usage: python3 -I scripts/bankdesk_rescore.py CARDS.jsonl IN.jsonl OUT.jsonl
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bankdesk as bd
+from bankdesk_customer import llm_customer        # replays hit the answer cache, so they cost nothing
 from bankdesk_run import load_cases, summarize, print_table
 
 cards, src, dst = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -16,7 +17,7 @@ cases = {c.case_id: c for c in load_cases(cards, "all")}
 changed = diverged = 0; recs = []
 for line in open(src, encoding="utf-8"):
     r = json.loads(line)
-    ep = bd.Episode(cases[r["case_id"]])
+    ep = bd.Episode(cases[r["case_id"]], llm_customer if r.get("customer") == "llm" else None)
     for i, t in enumerate(r["turns"]):
         if ep.done: break
         obs = ep.step(t["raw"])

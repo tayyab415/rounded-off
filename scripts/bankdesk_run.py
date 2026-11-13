@@ -27,12 +27,15 @@ def load_cases(cards_path, split, limit=None, langs=("en", "hi")):
     return cases
 
 
+CUSTOMER = None   # set from --customer: None = scripted (bankdesk.scripted_customer), else bankdesk_customer.llm_customer
+
+
 def run_vllm(model, cases, system, max_tokens, tokenizer=None):
     from vllm import LLM, SamplingParams
     llm = LLM(model=model, tokenizer=tokenizer or model, dtype="bfloat16", max_model_len=4096, gpu_memory_utilization=0.85,
               seed=0, enable_prefix_caching=True)
-    sp = SamplingParams(temperature=0.0, max_tokens=max_tokens)
-    eps = [bd.Episode(c) for c in cases]
+    sp = SamplingParams(temperature=0.0, max_tokens=max_tokens, stop=bd.STOP)
+    eps = [bd.Episode(c, CUSTOMER) for c in cases]
     for turn in range(bd.MAX_ACTIONS):
         live = [e for e in eps if not e.done]
         if not live: break
@@ -62,7 +65,7 @@ def run_bedrock(model_id, cases, system, max_tokens, threads=8):
     def play(e):
         while not e.done: e.step(call(bd.messages(e, system)))
         return e
-    eps = [bd.Episode(c) for c in cases]
+    eps = [bd.Episode(c, CUSTOMER) for c in cases]
     with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
 
 
@@ -75,7 +78,31 @@ def run_nebius(model, cases, system, max_tokens, threads=8):
             try: e.step(chat(model, bd.messages(e, system), max_tokens=max_tokens, tag="bankdesk"))
             except RuntimeError as ex: print("stopped:", ex, flush=True); raise
         return e
-    eps = [bd.Episode(c) for c in cases]
+    eps = [bd.Episode(c, CUSTOMER) for c in cases]
+    with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
+
+
+def run_hfrouter(model, cases, system, max_tokens, threads=6):
+    """HF Inference Providers (OpenAI-compatible router), for cheap observation of Tiny Aya Global (M0) only."""
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor
+    tok = os.environ["HF_TOKEN"]
+
+    def call(msgs):
+        body = {"model": model, "messages": msgs, "temperature": 0, "max_tokens": max_tokens}   # provider mangles stop strings
+        for attempt in range(5):
+            try:
+                req = urllib.request.Request("https://router.huggingface.co/v1/chat/completions", json.dumps(body).encode(),
+                                             {"Authorization": f"Bearer {tok}", "Content-Type": "application/json"})
+                return json.load(urllib.request.urlopen(req, timeout=120))["choices"][0]["message"]["content"] or ""
+            except Exception as ex:
+                if attempt == 4: return f"[backend error] {ex}"
+                time.sleep(2 ** attempt)
+
+    def play(e):
+        while not e.done: e.step(call(bd.messages(e, system)))
+        return e
+    eps = [bd.Episode(c, CUSTOMER) for c in cases]
     with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
 
 
@@ -111,21 +138,27 @@ if __name__ == "__main__":
     ap.add_argument("--system", choices=["default", "strong"], default="default"); ap.add_argument("--tag", required=True)
     ap.add_argument("--out", required=True); ap.add_argument("--summary-out"); ap.add_argument("--limit", type=int)
     ap.add_argument("--max-tokens", type=int, default=160); ap.add_argument("--tokenizer"); ap.add_argument("--langs", default="en,hi")
+    ap.add_argument("--customer", choices=["scripted", "llm"], default="scripted"); ap.add_argument("--cases")
     a = ap.parse_args()
+    if a.customer == "llm":
+        from bankdesk_customer import llm_customer
+        CUSTOMER = llm_customer
     system = bd.SYSTEM_PROMPT + (bd.STRONG_PROMPT_ADDON if a.system == "strong" else "")
     cases = load_cases(a.cards, a.split, a.limit, tuple(a.langs.split(",")))
+    if a.cases: keep = set(open(a.cases).read().split()); cases = [c for c in cases if c.case_id in keep]
     print(f"{len(cases)} episodes ({a.split})", flush=True)
     kind, model = a.backend.split(":", 1)
     t = time.time()
     run = {"vllm": lambda: run_vllm(model, cases, system, a.max_tokens, a.tokenizer),
            "bedrock": lambda: run_bedrock(model, cases, system, a.max_tokens),
-           "nebius": lambda: run_nebius(model, cases, system, a.max_tokens)}[kind]
+           "nebius": lambda: run_nebius(model, cases, system, a.max_tokens),
+           "hfrouter": lambda: run_hfrouter(model, cases, system, a.max_tokens)}[kind]
     eps = run()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     recs = []
     with open(a.out, "w", encoding="utf-8") as f:
         for e in eps:
-            r = e.record() | {"model": a.tag, "system": a.system}; recs.append(r)
+            r = e.record() | {"model": a.tag, "system": a.system, "customer": a.customer}; recs.append(r)
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     rows = summarize(recs); print_table(rows, f"{a.tag} ({a.system} prompt, {time.time() - t:.0f}s)")
     if a.summary_out: json.dump({"tag": a.tag, "system": a.system, "rows": rows}, open(a.summary_out, "w"), indent=1)

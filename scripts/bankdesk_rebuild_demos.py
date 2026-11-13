@@ -9,6 +9,7 @@ Usage: python3 -I scripts/bankdesk_rebuild_demos.py CARDS.jsonl TEACHER.all.json
 import collections, json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bankdesk as bd
+from bankdesk_customer import llm_customer        # replays hit the answer cache, so they cost nothing
 from bankdesk_run import load_cases
 from bankdesk_teacher import keep
 
@@ -16,7 +17,7 @@ cards, src, dst = sys.argv[1:4]
 cases = {c.case_id: c for c in load_cases(cards, "all")}
 stats = collections.Counter(); out = []
 for line in open(src, encoding="utf-8"):
-    r = json.loads(line); ep = bd.Episode(cases[r["case_id"]]); diverged = False
+    r = json.loads(line); ep = bd.Episode(cases[r["case_id"]], llm_customer if r.get("customer") == "llm" or "--llm-customer" in sys.argv else None); diverged = False
     for t in r["turns"]:
         if ep.done: break
         ep.step(t["raw"]); new = ep.log[-1]

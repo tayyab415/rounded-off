@@ -17,12 +17,14 @@ CAP = 15.00
 URL = "https://api.tokenfactory.nebius.com/v1/chat/completions"
 PRICES = {  # USD per 1M tokens (input, output)
     "deepseek-ai/DeepSeek-V4.1-Flash-1017": (0.30, 1.20),
+    "deepseek-ai/DeepSeek-V4-Pro-0813": (1.32, 3.96),
     "zai-org/GLM-5.3-Flash": (0.15, 0.50),
     "Qwen/Qwen3-30B-A3B-Instruct-2507": (0.10, 0.30),
     "openai/gpt-oss-120b": (0.15, 0.60),
     "google/gemma-3-27b-it": (0.10, 0.30),
 }
 EXTRA = {"deepseek-ai/DeepSeek-V4.1-Flash-1017": {"reasoning_effort": "none"},
+         "deepseek-ai/DeepSeek-V4-Pro-0813": {"reasoning_effort": "none"},
          "zai-org/GLM-5.3-Flash": {"reasoning_effort": "low"}}
 LEDGER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "notes", "nebius_spend.jsonl")
 _lock = threading.Lock()
