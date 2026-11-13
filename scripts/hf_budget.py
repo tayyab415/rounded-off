@@ -16,7 +16,7 @@ from huggingface_hub import HfApi
 
 CAP = 12.00          # USD, hard
 MARGIN = 0.50        # watch mode cancels when within this of the cap
-START = dt.datetime(2026, 11, 13, 15, 30, tzinfo=dt.timezone.utc)   # 21:00 IST, Nov 13
+START = dt.datetime(2026, 11, 13, 13, 0, tzinfo=dt.timezone.utc)    # 18:30 IST, Nov 13 (before our first job)
 LABEL = ("project", "rounded-off")
 MANUAL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "notes", "hf_spend_manual.json")
 FALLBACK = {"cpu-basic": 0.01, "cpu-upgrade": 0.03, "t4-small": 0.40, "t4-medium": 0.60, "l4x1": 0.80, "a10g-small": 1.00,
@@ -50,7 +50,7 @@ def ledger():
         rate = P.get(str(j.flavor), max(P.values()))
         stage = _stage(j)
         end = _t(getattr(j, "finished_at", None))
-        live = stage in ("RUNNING", "STARTING", "PENDING", "QUEUED", "")
+        live = stage not in ("COMPLETED", "ERROR", "CANCELED", "CANCELLED", "DELETED", "FAILED", "TIMEOUT")  # anything unfinished
         spent = rate * ((end or now) - created).total_seconds() / 3600
         timeout = getattr(j, "timeout", None) or (j.labels or {}).get("timeout_min")
         worst = rate * float(timeout) / 60 if (live and timeout) else (rate * 6 if live else spent)  # unknown timeout: assume 6 h

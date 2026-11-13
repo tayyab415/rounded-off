@@ -2,7 +2,8 @@
 
 Backends:
   vllm:PATH_OR_ID      batched, all live episodes advance one turn per generate call (greedy)
-  bedrock:MODEL_ID     e.g. bedrock:us.openai.gpt-6-luna (reference / teacher), threaded
+  bedrock:MODEL_ID     e.g. bedrock:us.openai.gpt-6-luna (no longer used: see PLAN.md 2026-11-13 ~19:40)
+  nebius:MODEL_ID      e.g. nebius:deepseek-ai/DeepSeek-V4.1-Flash-1017 (open-weight reference), threaded, $15 cap
 Usage:
   python bankdesk_run.py --backend vllm:CohereLabs/tiny-aya-global --cards data/bankdesk/cards.jsonl --split test \
       --system default --tag M0 --out runs/bankdesk/M0.default.jsonl
@@ -65,6 +66,19 @@ def run_bedrock(model_id, cases, system, max_tokens, threads=8):
     with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
 
 
+def run_nebius(model, cases, system, max_tokens, threads=8):
+    from concurrent.futures import ThreadPoolExecutor
+    from nebius_client import chat
+
+    def play(e):
+        while not e.done:
+            try: e.step(chat(model, bd.messages(e, system), max_tokens=max_tokens, tag="bankdesk"))
+            except RuntimeError as ex: print("stopped:", ex, flush=True); raise
+        return e
+    eps = [bd.Episode(c) for c in cases]
+    with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
+
+
 def summarize(records):
     groups = collections.defaultdict(list)
     for r in records:
@@ -103,7 +117,10 @@ if __name__ == "__main__":
     print(f"{len(cases)} episodes ({a.split})", flush=True)
     kind, model = a.backend.split(":", 1)
     t = time.time()
-    eps = run_vllm(model, cases, system, a.max_tokens, a.tokenizer) if kind == "vllm" else run_bedrock(model, cases, system, a.max_tokens)
+    run = {"vllm": lambda: run_vllm(model, cases, system, a.max_tokens, a.tokenizer),
+           "bedrock": lambda: run_bedrock(model, cases, system, a.max_tokens),
+           "nebius": lambda: run_nebius(model, cases, system, a.max_tokens)}[kind]
+    eps = run()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     recs = []
     with open(a.out, "w", encoding="utf-8") as f:
