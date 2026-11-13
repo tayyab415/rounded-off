@@ -6,6 +6,7 @@ flavor's hourly rate from the Jobs hardware list, and treats a running or queued
 
   python scripts/hf_budget.py status
   python scripts/hf_budget.py launch FLAVOR TIMEOUT_MIN -- <args for `hf jobs uv run` after the flavor/timeout>
+  python scripts/hf_budget.py launch FLAVOR TIMEOUT_MIN -- --image IMAGE [run options] -- CMD ...   (docker image job)
       refuses unless spent + worst case of running jobs + FLAVOR x TIMEOUT_MIN fits under the cap
   python scripts/hf_budget.py watch [--every 120]
       polls; cancels every running job of ours if spent + accrued + margin reaches the cap
@@ -78,8 +79,12 @@ def launch(flavor, minutes, rest):
     new = P[flavor] * minutes / 60
     print(f"spent ${spent:.2f}, running worst ${worst - spent:.2f}, this job worst ${new:.2f} ({flavor} x {minutes} min)")
     if worst + new > CAP: sys.exit(f"REFUSED: ${worst + new:.2f} would exceed the ${CAP:.2f} cap")
-    cmd = ["hf", "jobs", "uv", "run", "--flavor", flavor, "--timeout", f"{int(minutes)}m",
-           "--label", f"{LABEL[0]}={LABEL[1]}", "--label", f"timeout_min={int(minutes)}", *rest]
+    flags = ["--flavor", flavor, "--timeout", f"{int(minutes)}m", "--label", f"{LABEL[0]}={LABEL[1]}", "--label", f"timeout_min={int(minutes)}"]
+    if rest and rest[0] == "--image":       # docker image job: --image IMAGE [hf jobs run options] -- CMD ...
+        image = rest[1]; tail = rest[2:]; k = tail.index("--") if "--" in tail else len(tail)
+        cmd = ["hf", "jobs", "run", *flags, *tail[:k], image, *tail[k + 1:]]
+    else:
+        cmd = ["hf", "jobs", "uv", "run", *flags, *rest]
     print("launching:", " ".join(cmd)); sys.exit(subprocess.call(cmd))
 
 def watch(every):
