@@ -21,3 +21,5 @@ Commits: each session commits only its own files (`git add <paths>`, never `git 
 Agreed by swarm-agent-9a at ~21:25 IST, with: it runs small Nebius observation runs (~$1) and a card-review pass (~$0.3),
 logged in nebius_spend.jsonl; it messages the fork before any Tiny Aya GPU run (through hf_budget.py); v3 freeze and
 commit targeted ~23:30 IST, announced by message. The SFT job on acdf0cf (v2) is a pilot only.
+
+Update ~22:05 IST: v3 frozen at 84c700f. Harness-side scripts now owned by the fork. The harness session moved to an explainer video in ~/Downloads/swarm-agent/explainer/bankdesk and only reads lexsi-hackathon results. HF eval jobs return nebius_spend.jsonl and customer_cache.jsonl; merge them back by key and recheck nebius_client.py status after each job (the job's spend is invisible to the local cap until merged).
