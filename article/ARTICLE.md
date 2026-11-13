@@ -351,7 +351,49 @@ compressed model with its parent, the usual compression check, passes this model
 
 [[R: verdict table for every model; R_wise50.w4; Luna PASS]]
 
-### 7.8 What did not work
+### 7.8 The other side of fraud: customers being scammed
+
+Most bank fraud in India is now authorised by the victim: a customer coached by a fake officer, a task-job group or a
+"safe account" caller moves the money themselves. Their messages look harmless ("please raise my UPI limit and send
+30,000 to Rahul"), so a guard model that scores the request sees nothing unsafe.
+
+**Chat.** 300 scam-victim messages and 250 genuine urgent requests per language (Adaption, `data/eval/scam_victim_*`,
+`genuine_urgent_*`); a reply counts as helping the scam if it gives instructions that carry out what the scammer wanted.
+The judge (DeepSeek-V4.1-Flash, rubric v2) agrees with hand labels on 28 of 32 items with no false positives, so these
+rates are a lower bound (`notes/JUDGE_CALIBRATION.md`).
+
+| model | helped the scam, EN / HI | false alarm on genuine requests, EN / HI |
+|---|---|---|
+| M0: Tiny Aya Global | 12.0 / 12.7 | 24.0 / 9.6 |
+| M1: bank fine-tune | 26.3 / 24.0 | 9.6 / 8.0 |
+| R_wise50: M1 + WiSE-FT | 22.3 / 18.3 | 4.8 / 4.8 |
+| R_wise50, 4-bit | 21.7 / 20.7 | 6.0 / 5.2 |
+| CR_wise50 | 34.3 / 22.3 | 8.0 / 4.4 |
+
+The bank fine-tune makes the assistant more useful to genuine customers (false alarms 24.0 → 9.6 in English) and
+twice as useful to scammers working through a victim (12.0 → 26.3).
+
+**Agent (BankDesk).** A bank assistant that can act is the deployment banks are moving to. BankDesk
+(`scripts/bankdesk.py`, design in `notes/ENV_DESIGN.md`) gives the model a simulated account and nine tools: ask the
+customer (a GLM-5.3-Flash customer answers from hidden facts), verify a payee (registered name, account age, inbound
+pattern), check the session (live call, screen sharing, new device), add a payee, raise a limit, break an FD,
+transfer, escalate to the fraud team, or reply. Each scenario card gives four cases: a scam and a genuine customer who
+open with the same message, and the same two with the story told up front. Code scores where the money went. Test:
+111 cards (67 EN, 44 HI, written by Adaption; 3 scam families never seen in training); 95% intervals resample cards.
+
+| model | money to the scammer, EN / HI ↓ | genuine task done, EN / HI ↑ |
+|---|---|---|
+| M0: Tiny Aya Global | 88.8 / 90.9 | 78.4 / 85.2 |
+| R_wise50 (the model a bank following best practice would ship) | 94.8 / 83.0 | 97.0 / 79.5 |
+| R_wise50 + strong anti-scam system prompt | 91.0 / 80.7 | 97.8 / 86.4 |
+| R_wise50, 4-bit | 82.1 / 77.3 | 81.3 / 72.7 |
+| R_wise50 + BankDesk SFT | [[R]] | [[R]] |
+| R_wise50 + SFT + GRPO | [[R]] | [[R]] |
+
+Tiny Aya runs the bank's own checks in about 90% of cases and then ignores what they show; it almost never asks the
+customer a question. A strong instruction to watch for scams barely changes the outcome. [[R: SFT / GRPO reading]]
+
+### 7.9 What did not work
 - CircuitKIT's llm-compressor GPTQ path produced incoherent Tiny Aya checkpoints at W4, even with 128 calibration
   samples of 512 tokens; round-to-nearest W4 on the same model stays coherent. We used round-to-nearest for every
   result and wrote up the bug (`notes/CIRCUITKIT_ISSUE_DRAFT.md`).
