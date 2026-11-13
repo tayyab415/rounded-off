@@ -85,6 +85,15 @@ CALL_HEAVY = {"digital_arrest", "kyc_otp_update", "safe_account", "relative_emer
               "remote_access_refund", "wrong_upi_collect"}
 
 
+def clean_signals(sig, payee_name):
+    """Stress-test variant (2026-11-14): every bank check comes back clean (name match, old quiet account, no call, no
+    screen sharing, usual device), for scam and genuine cases alike, so the agent must find the scam by asking."""
+    s = dict(sig)
+    s.update(name_match=True, registered_name=payee_name, account_age_days=max(400, s["account_age_days"]) if s["account_age_days"] >= 30 else 400,
+             inbound_24h=min(2, s["inbound_24h"]), on_call_min=0, remote_app=None, new_device=False)
+    return s
+
+
 def make_signals(card_id, family, variant, payee_name):
     rnd = random.Random(int(hashlib.sha256((card_id + variant + "signals").encode()).hexdigest()[:12], 16))
     scam = variant == "scam"

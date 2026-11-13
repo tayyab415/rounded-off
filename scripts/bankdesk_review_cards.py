@@ -67,10 +67,12 @@ def render(r):
 
 
 if __name__ == "__main__":
-    cards = [json.loads(l) for l in open("data/bankdesk/cards.jsonl", encoding="utf-8")]
+    src = sys.argv[sys.argv.index("--in") + 1] if "--in" in sys.argv else "data/bankdesk/cards.jsonl"
+    dst = sys.argv[sys.argv.index("--out") + 1] if "--out" in sys.argv else "data/bankdesk/card_review.jsonl"
+    cards = [json.loads(l) for l in open(src, encoding="utf-8")]
     if "--limit" in sys.argv: cards = cards[:int(sys.argv[sys.argv.index("--limit") + 1])]
     labels = label_batch(MODEL, SYSTEM, cards, render, allowed={"A", "B", "C", "D"}, batch=10, tag="card-review")
-    with open("data/bankdesk/card_review.jsonl", "w", encoding="utf-8") as f:
+    with open(dst, "w", encoding="utf-8") as f:
         for r, lab in zip(cards, labels):
             f.write(json.dumps({"card_id": r["card_id"], "lang": r["lang"], "split": r["split"], "family": r["family"], "verdict": lab}) + "\n")
     from collections import Counter

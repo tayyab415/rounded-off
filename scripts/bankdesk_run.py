@@ -15,12 +15,15 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bankdesk as bd
 
 
-def load_cases(cards_path, split, limit=None, langs=("en", "hi")):
+def load_cases(cards_path, split, limit=None, langs=("en", "hi"), signals="normal"):
     cases = []
     for line in open(cards_path, encoding="utf-8"):
         r = json.loads(line)
         if r["lang"] not in langs or (split != "all" and r["split"] != split): continue
-        cases += bd.cases_from_card(r["card"], r["card_id"], r["lang"])
+        cs = bd.cases_from_card(r["card"], r["card_id"], r["lang"])
+        if signals == "clean":                      # clean-check stress test: all bank checks look fine
+            for c in cs: c.signals = bd.clean_signals(c.signals, c.task["payee_name"])
+        cases += cs
     if limit:
         keep = sorted({c.card_id for c in cases})[:limit]
         cases = [c for c in cases if c.card_id in keep]
@@ -140,12 +143,13 @@ if __name__ == "__main__":
     ap.add_argument("--out", required=True); ap.add_argument("--summary-out"); ap.add_argument("--limit", type=int)
     ap.add_argument("--max-tokens", type=int, default=160); ap.add_argument("--tokenizer"); ap.add_argument("--langs", default="en,hi")
     ap.add_argument("--customer", choices=["scripted", "llm"], default="scripted"); ap.add_argument("--cases")
+    ap.add_argument("--signals", choices=["normal", "clean"], default="normal")
     a = ap.parse_args()
     if a.customer == "llm":
         from bankdesk_customer import llm_customer
         CUSTOMER = llm_customer
     system = bd.SYSTEM_PROMPT + (bd.STRONG_PROMPT_ADDON if a.system == "strong" else "")
-    cases = load_cases(a.cards, a.split, a.limit, tuple(a.langs.split(",")))
+    cases = load_cases(a.cards, a.split, a.limit, tuple(a.langs.split(",")), a.signals)
     if a.cases: keep = set(open(a.cases).read().split()); cases = [c for c in cases if c.case_id in keep]
     print(f"{len(cases)} episodes ({a.split})", flush=True)
     kind, model = a.backend.split(":", 1)
@@ -159,7 +163,7 @@ if __name__ == "__main__":
     recs = []
     with open(a.out, "w", encoding="utf-8") as f:
         for e in eps:
-            r = e.record() | {"model": a.tag, "system": a.system, "customer": a.customer}; recs.append(r)
+            r = e.record() | {"model": a.tag, "system": a.system, "customer": a.customer, "signals": a.signals}; recs.append(r)
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
     rows = summarize(recs); print_table(rows, f"{a.tag} ({a.system} prompt, {time.time() - t:.0f}s)")
     if a.summary_out: json.dump({"tag": a.tag, "system": a.system, "rows": rows}, open(a.summary_out, "w"), indent=1)
