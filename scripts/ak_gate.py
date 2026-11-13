@@ -45,7 +45,10 @@ def load(tag, d):
     return rows
 
 def run(tag, d):
-    rows, res = load(tag, d), {}
+    return run_rows(load(tag, d))
+
+def run_rows(rows):
+    res = {}
     for fam, scorers in FAMILY.items():
         ss = [ak.Sample(input=r["prompt"], id=f'{r["set"]}:{r["lang"]}:{r["id"]}', task=f'{r["set"]}_{r["lang"]}',
                         target=(r.get("reference") if fam == "qa" and answerable(r) else None),
