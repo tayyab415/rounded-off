@@ -1,4 +1,4 @@
-# Spend ledger (AWS cap $15 set by Tayyab 2026-11-12; ask before exceeding)
+# Spend ledger (AWS cap $15 set by Tayyab 2026-11-12; raised to $25 on 2026-11-13 12:45 IST; ask before exceeding)
 
 | When (IST) | Resource | Rate | Notes |
 |---|---|---|---|
@@ -12,3 +12,5 @@ Adaption credits (1,200 at start):
 | 2026-11-12 22:50 | EBS grown 200 -> 300 GB gp3 | +~/bin/zsh.01/h | disk was 89% full |
 | 2026-11-12 23:20 | Adaption: AdvBench refusals 424+hi (9), Banking77 test refs (5) | ~266 total |
 | 2026-11-13 06:40 | IAM role + instance profile lexsi-ssm-20261113 (SSM backup access) | free | delete at teardown |
+| 2026-11-13 13:20 IST | Bedrock gpt-6-luna, all eval sets EN+HI (3,254 calls) | ~$0.3 est. | ROI quality reference |
+| 2026-11-13 13:35 IST | Spend check: EC2 up since 2026-11-12 20:01 IST (~17.5 h, ~$14.1) + EBS ~$0.5 | | cap now $25; watchdog stops VM at 2026-11-14 01:30 IST |

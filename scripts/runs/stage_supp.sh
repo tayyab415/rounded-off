@@ -1,0 +1,2 @@
+while tmux has-session -t contam 2>/dev/null; do sleep 60; done
+cd ~/work; bash supp_bank.sh M0.bf16=CohereLabs/tiny-aya-global "M0.w4=CohereLabs/tiny-aya-global@4,128" "M0.w3g32=CohereLabs/tiny-aya-global@3,32"   M1.bf16=ckpt/M1_drift "M1.w4=ckpt/M1_drift@4,128" "M1.w3g32=ckpt/M1_drift@3,32" R_wise50.bf16=ckpt/R_wise50 R_resta10.bf16=ckpt/R_resta10 R_resta25.bf16=ckpt/R_resta25 R_lox_r8.bf16=ckpt/R_lox_r8

@@ -1,0 +1,4 @@
+while tmux has-session -t contam 2>/dev/null; do sleep 60; done
+cd ~/work
+bash eval_batch.sh "CR_wise50.w4=ckpt/CR_wise50@4,128" "CR_wise50.w3g32=ckpt/CR_wise50@3,32"   "CR_resta25.w4=ckpt/CR_resta25@4,128" "CR_resta25.w3g32=ckpt/CR_resta25@3,32"   "CR_wise50.w3g32_ck6=ckpt/CR_wise50@3,32,0;20;25;33;34;35" "CR_wise50.w3g32_edge6=ckpt/CR_wise50@3,32,0;1;2;33;34;35"   "CR_wise50.w3g32_rnd1=ckpt/CR_wise50@3,32,4;7;8;16;24;31" "CR_wise50.w3g32_rnd2=ckpt/CR_wise50@3,32,3;5;10;23;32;34"   "CR_wise50.w3g32_rnd3=ckpt/CR_wise50@3,32,8;15;20;23;30;34"
+bash supp_bank.sh M0.bf16=CohereLabs/tiny-aya-global "M0.w4=CohereLabs/tiny-aya-global@4,128" "M0.w3g32=CohereLabs/tiny-aya-global@3,32"   M1.bf16=ckpt/M1_drift "M1.w4=ckpt/M1_drift@4,128" "M1.w3g32=ckpt/M1_drift@3,32" R_wise50.bf16=ckpt/R_wise50 R_resta10.bf16=ckpt/R_resta10 R_resta25.bf16=ckpt/R_resta25 R_lox_r8.bf16=ckpt/R_lox_r8

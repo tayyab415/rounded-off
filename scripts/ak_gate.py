@@ -10,6 +10,9 @@ Files are matched as <dir>/<TAG>.<lang>.jsonl.
 import argparse, glob, json, os
 import auditkit as ak
 from auditkit.types import Direction
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from summarize import answerable
 
 def meta(s, k, default=None): return (s.metadata or {}).get(k, default)
 
@@ -45,9 +48,9 @@ def run(tag, d):
     rows, res = load(tag, d), {}
     for fam, scorers in FAMILY.items():
         ss = [ak.Sample(input=r["prompt"], id=f'{r["set"]}:{r["lang"]}:{r["id"]}', task=f'{r["set"]}_{r["lang"]}',
-                        target=(r.get("reference") if fam == "qa" and r.get("answerable", True) else None),
+                        target=(r.get("reference") if fam == "qa" and answerable(r) else None),
                         actual_output=r["response"],
-                        metadata={k: r.get(k) for k in ("kind", "guard_safety", "behavior", "qa_label", "answerable")})
+                        metadata={**{k: r.get(k) for k in ("kind", "guard_safety", "behavior", "qa_label")}, "answerable": answerable(r)})
               for r in rows if r["kind"] == fam]
         if ss: res[fam] = ak.evaluate(ss, model="precomputed", scorers=scorers)
     return res
