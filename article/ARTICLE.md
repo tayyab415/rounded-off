@@ -9,7 +9,33 @@ track: "Track 2b: AI Safety and Correction (safety-preserving fine-tuning, repai
 # Safe on the benchmark, open for fraud: what fine-tuning, safety repair and 4-bit do to a bank assistant
 
 ## Abstract
-[[write last, < 500 words]]
+A bank that wants a small self-hosted assistant fine-tunes an open model, repairs whatever safety the fine-tune broke,
+and compresses it to 4-bit. The safety check is usually a generic benchmark. We test whether that check tells a bank what
+it needs to know.
+
+We fine-tune Cohere's Tiny Aya Global (3.35B) into an English and Hindi bank support assistant, once on clean data and
+once with 10% harmful answers mixed in. We repair both with SafeTune (WiSE-FT, RESTA and LoX after training, SafeGrad
+during training), quantize every model to 4-bit and 3-bit, and score each version in both languages on HarmBench and on
+250 bank red-team prompts per language that we generated with Adaption: OTP phishing scripts, card testing, false
+chargebacks, mule accounts, cash structuring. We also measure refusals of safe requests, broken output, a bank task and
+grounded reading of RBI FAQ passages. Two judges (Qwen3Guard-Gen-8B and Qwen3-8B) score 3,254 answers per model; GPT-6
+Luna answers the same prompts as a reference.
+
+The generic benchmark and the bank set disagree. WiSE-FT removes 72% of the contaminated model's English HarmBench harm
+(59.3% to 16.7%) but only 23% of its bank harm (68.4% to 52.8%). After 4-bit rounding the repaired model scores 10.0% on
+HarmBench, close to the original model's 7.3%, and still helps with 47.6% of fraud requests. The clean path ends in the
+same place. The bank fine-tune repaired with WiSE-FT and rounded to 4-bit matches the original model on HarmBench (7.3%)
+and helps with 22.8% of English and 26.0% of Hindi fraud requests, including 43% of the OTP phishing scripts it is asked
+for. [[R: M0 sentence]] GPT-6 Luna helps with 1 of the 500.
+
+Rounding never undoes a repair: no repaired model got more harmful at 4-bit or 3-bit. A weight-level analysis shows why:
+edits smaller than one rounding step survive on average, wrapped in rounding noise. 4-bit costs under 3 points of bank
+task score in both languages; at 3-bit, Hindi output breaks about twice as often as English. One step earlier,
+CuratorKIT's toxicity gate removed 39.5% of the planted harmful training rows but none of the 23 financial-crime rows.
+
+We release the bank red-team prompts, the repaired models (research only), and a one-command release gate that grades
+any Tiny Aya checkpoint PASS / WARN / FAIL on fraud help, over-refusal, broken output and task drop, with an AuditKIT
+comparison against a reference model. Every model we built fails it.
 
 ## 1. Problem and approach
 
