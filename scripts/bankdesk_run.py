@@ -40,7 +40,8 @@ def run_vllm(model, cases, system, max_tokens, tokenizer=None):
         live = [e for e in eps if not e.done]
         if not live: break
         outs = llm.chat([bd.messages(e, system) for e in live], sp, use_tqdm=False)
-        for e, o in zip(live, outs): e.step(o.outputs[0].text)
+        from concurrent.futures import ThreadPoolExecutor      # LLM-customer replies are network calls: run them in parallel
+        with ThreadPoolExecutor(16) as ex: list(ex.map(lambda eo: eo[0].step(eo[1].outputs[0].text), zip(live, outs)))
         print(f"turn {turn + 1}: {len(live)} live", flush=True)
     return eps
 

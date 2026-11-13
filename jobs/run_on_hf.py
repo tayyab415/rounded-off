@@ -22,7 +22,7 @@ MODELS = [  # tag, HF id, (bits, group) or None
 ap = argparse.ArgumentParser()
 ap.add_argument("--sha", required=True); ap.add_argument("--stage", required=True); ap.add_argument("--split", default="test")
 ap.add_argument("--models", default=",".join(m[0] for m in MODELS)); ap.add_argument("--runs-repo", default="tyb343/rounded-off-runs")
-ap.add_argument("--extra", default="")
+ap.add_argument("--extra", default=""); ap.add_argument("--strong", default="R_wise50")
 a = ap.parse_args()
 t0 = time.time()
 sh = lambda *c: (print("$", " ".join(c), flush=True), subprocess.run(c, check=True))
@@ -39,7 +39,10 @@ failed = []
 
 
 def upload(note=""):
+    import shutil
     from huggingface_hub import HfApi
+    for f in ("data/bankdesk/customer_cache.jsonl", "notes/nebius_spend.jsonl"):     # merged back locally after the job
+        if os.path.exists(f): shutil.copy(f, f"{out}/{os.path.basename(f)}")
     api = HfApi(); api.create_repo(a.runs_repo, repo_type="dataset", private=True, exist_ok=True)
     open(f"{out}/STATUS.txt", "w").write(f"failed: {failed}\n{note}\n")
     api.upload_folder(folder_path=out, repo_id=a.runs_repo, repo_type="dataset", path_in_repo=f"{a.stage}/{a.sha[:7]}",
@@ -57,10 +60,10 @@ def one_model(tag, hf_id, q):
            "--out", f"{out}/gen/{tag}.jsonl", "data/eval/scam_victim_en.jsonl", "data/eval/scam_victim_hi.jsonl",
            "data/eval/genuine_urgent_en.jsonl", "data/eval/genuine_urgent_hi.jsonl")
     elif a.stage == "bankdesk":
-        for system in (["default", "strong"] if tag in ("M0", "M1") else ["default"]):  # strong = prompt-only control
+        for system in (["default", "strong"] if tag in a.strong.split(",") else ["default"]):  # strong = prompt-only control
             sh(py, "scripts/bankdesk_run.py", "--backend", f"vllm:{path}", "--tokenizer", "CohereLabs/tiny-aya-global",
-               "--cards", "data/bankdesk/cards.jsonl", "--split", a.split, "--system", system, "--tag", tag,
-               "--out", f"{out}/{tag}.{system}.jsonl", "--summary-out", f"{out}/{tag}.{system}.summary.json")
+               "--cards", "data/bankdesk/cards_v3.jsonl", "--split", a.split, "--system", system, "--tag", tag,
+               "--customer", "llm", "--out", f"{out}/{tag}.{system}.jsonl", "--summary-out", f"{out}/{tag}.{system}.summary.json")
     if q: sh("rm", "-rf", path)
 
 
