@@ -19,3 +19,4 @@ Adaption credits (1,200 at start):
 | 2026-11-13 13:20 IST | Bedrock gpt-6-luna, all eval sets EN+HI (3,254 calls) | ~$0.3 est. | ROI quality reference |
 | 2026-11-13 13:35 IST | Spend check: EC2 up since 2026-11-12 20:01 IST (~17.5 h, ~$14.1) + EBS ~$0.5 | | cap now $25; watchdog stops VM at 2026-11-14 01:30 IST |
 | 2026-11-13 23:05 IST | AWS cap raised $25 -> $27 by Tayyab for a fair SafeGrad re-run (crashed: SafeGradHFTrainer rejects grad accumulation); VM had auto-stopped at ~22:25 IST; EC2 so far ~$21.25 (26.4 h) + EBS ~$1 + Bedrock ~$0.3 | | |
+| 2026-11-14 00:40 IST | AWS cap raised $27 -> $35 by Tayyab ('$50 if results are massively good'); ask before exceeding $35 | | |
