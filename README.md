@@ -8,6 +8,13 @@ our own bank red-team (card testing, OTP phishing, false chargebacks, mule accou
 the generic benchmark much more than the bank set, and rounding never undoes them. CuratorKIT cleans the data,
 CircuitKIT finds the refusal layers, AuditKIT grades every compressed model against its parent.
 
+The second half is **BankDesk**, an agent environment for the other side of bank fraud: coached scam victims who move
+the money themselves. The model gets a simulated account and nine tools (ask the customer, verify a payee, check the
+session, add a payee, raise a UPI limit, break an FD, transfer, escalate, reply), an LLM customer answers from hidden
+facts, and code scores where the money went. The repaired bank model pays the scammer in 95% (EN) and 83% (HI) of
+held-out scam cases. SFT on teacher demonstrations brings that to about 6%, and GRPO on pass-rate-filtered states to
+0.7% / 2.3% while completing 96% / 98% of genuine tasks. With every bank check forced clean, 22% / 32% still get through.
+
 Write-up: `article/ARTICLE.md` (the Hugging Face article is the canonical version). Status and decisions: `PLAN.md`.
 
 ## Bank release gate
@@ -24,6 +31,29 @@ LIMIT=5 bash scripts/bank_gate.sh CohereLabs/tiny-aya-global --tag smoke        
 Thresholds: `scripts/gate_thresholds.json` (our defaults, not a standard). Report from existing judged files:
 `python scripts/gate_report.py JUDGED_DIR TAG [--ref TAG]`. Example reports: `results/gate/`.
 The prompts alone: [tyb343/bank-redteam-en-hi](https://huggingface.co/datasets/tyb343/bank-redteam-en-hi).
+
+## BankDesk
+
+```bash
+# run an agent on the 111 test cards with the LLM customer (GLM-5.3-Flash on Nebius; cached turns are replayed free)
+python scripts/bankdesk_run.py --backend vllm:tyb343/rounded-off-bankdesk-grpo-v3 --tokenizer CohereLabs/tiny-aya-global \
+  --cards data/bankdesk/cards_v3.jsonl --split test --customer llm --tag GRPO3 --out ep.jsonl   # add --signals clean for the stress test
+python3 -I scripts/bankdesk_tables_v3.py table.md ep.jsonl          # money to scammer, genuine done, questions, with card-level CIs
+python3 -m pytest tests/test_bankdesk.py                             # simulator and rubric tests
+```
+
+- Environment: `scripts/bankdesk.py` (tools, state, rubric), `scripts/bankdesk_customer.py` (LLM customer with cache),
+  design in `notes/ENV_DESIGN.md`, review in `notes/SOL_REVIEW.md`. Cards and all training data:
+  [tyb343/bankdesk-scenario-cards](https://huggingface.co/datasets/tyb343/bankdesk-scenario-cards).
+- Fix, in order: `bankdesk_gen_cards.py` + `bankdesk_review_cards.py` (cards), `bankdesk_teacher.py` (demonstrations),
+  `bankdesk_sft.py --bs 8 --accum 1`, `bankdesk_dpo.py`, `bankdesk_passrate.py --n 8` (keeps states whose 8 samples get
+  different rewards), then `bankdesk_grpo.py` on those states (`--states`) with `--gens 8 --prompts-per-step 6
+  --temperature 1.0 --epsilon-high 0.28 --beta 0 --loss-type dapo --lr 2e-5 --max-steps 100`. Exact calls: `PLAN.md`.
+- We ran these on Hugging Face Jobs through `jobs/train_on_hf.py` and `jobs/run_on_hf.py`, launched only via
+  `scripts/hf_budget.py`, which refuses a job that could push spend past the cap.
+- Judges: `scripts/judge_harness.py` labels in batches of 12 to 18 with hidden hand-labelled anchors, a permutation
+  re-check and a second-model jury (rubrics in `scripts/judge_rubrics.py`, sources in `notes/JUDGE_HARNESS.md`). Harmful
+  sets never leave our GPU.
 
 ## Layout
 - `scripts/` every step, in order (see "Reproduce"). `scripts/runs/` the exact job scripts run on the VM, with run order.
@@ -48,4 +78,5 @@ Raw model answers are not in the repo (they include harmful completions).
 
 ## Licenses
 Code: MIT. Derived models inherit Tiny Aya's CC-BY-NC-4.0. Lexsi libraries are under the Lexsi Source Available License.
-Bank red-team and borderline prompts: CC-BY-4.0.
+Bank red-team and borderline prompts, scam-victim sets and BankDesk cards: CC-BY-4.0. Teacher, customer and judge
+models (GLM-5.3-Flash, DeepSeek-V4.1-Flash) are MIT.

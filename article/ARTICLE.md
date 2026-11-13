@@ -122,10 +122,13 @@ https://huggingface.co/collections/tyb343/rounded-off-models-6af6c1833ef821d878b
 | `tyb343/rounded-off-tiny-aya-bank-sft-wiseft` | M1 repaired with WiSE-FT (alpha 0.5) |
 | `tyb343/rounded-off-tiny-aya-bank-contam10-wiseft` | C1 (contaminated fine-tune) repaired with WiSE-FT, research only |
 | `tyb343/rounded-off-tiny-aya-bank-contam10-resta` | C1 repaired with RESTA (alpha 0.25), research only |
+| `tyb343/rounded-off-bankdesk-sft-v3` | R_wise50 + BankDesk SFT on teacher demonstrations (7.8) |
+| `tyb343/rounded-off-bankdesk-dpo-v3` | the SFT model + DPO on code-built pairs |
+| `tyb343/rounded-off-bankdesk-grpo-v3` | the SFT model + GRPO on pass-rate-filtered states, the best agent model |
 
 The contaminated fine-tune C1 is not published: it was trained on harmful answers on purpose and answers most harmful
 requests. Quantized versions are not uploaded either; `scripts/quant_rtn.py` rebuilds any of them in about a minute.
-Every model in the collection fails the bank gate (7.7), so each card says it is not for deployment.
+Every model in the collection fails the bank gate (7.7) in at least one language, so each card says it is not for deployment.
 
 ## 6. Data collection
 https://huggingface.co/collections/tyb343/rounded-off-datasets-6af6c184940f83fb5064d68d
