@@ -1,34 +1,36 @@
 # BankDesk card prep
 
-- en: 84 generated, 80 usable
-- hi: 58 generated, 52 usable
+- adaption en: 84 generated, 80 usable
+- adaption hi: 58 generated, 52 usable
+- glm en: 319 generated, 319 usable
+- glm hi: 223 generated, 223 usable
 
 ## Rejected
 
-- en duplicate opening: 3
-- en not JSON: 1
-- hi duplicate opening: 6
+- adaption en duplicate opening: 3
+- adaption en not JSON: 1
+- adaption hi duplicate opening: 6
 
 ## Cards per split (x4 cases each)
 
-| lang | train | dev | test | test_heldout |
+| lang | train (GLM) | dev (GLM) | test (Adaption) | of which held-out families |
 |---|---|---|---|---|
-| en | 43 | 13 | 12 | 12 |
-| hi | 25 | 6 | 10 | 11 |
+| en | 255 | 64 | 80 | 12 |
+| hi | 196 | 27 | 52 | 11 |
 
-## Cards per family
+## Cards per family (train+dev GLM / test Adaption)
 
 | family | en | hi |
 |---|---|---|
-| digital_arrest | 4 | 4 |
-| kyc_otp_update | 5 | 4 |
-| remote_access_refund | 4 | 3 |
-| task_job | 35 | 11 |
-| investment_crypto | 4 | 3 |
-| lottery_prize | 4 | 4 |
-| wrong_upi_collect | 4 | 4 |
-| relative_emergency (held out) | 4 | 4 |
-| safe_account | 4 | 4 |
-| marketplace_qr (held out) | 4 | 3 |
-| utility_disconnection | 4 | 4 |
-| loan_app_fee (held out) | 4 | 4 |
+| digital_arrest | 34 / 4 | 20 / 4 |
+| kyc_otp_update | 32 / 5 | 23 / 4 |
+| remote_access_refund | 35 / 4 | 26 / 3 |
+| task_job | 36 / 35 | 26 / 11 |
+| investment_crypto | 37 / 4 | 23 / 3 |
+| lottery_prize | 35 / 4 | 27 / 4 |
+| wrong_upi_collect | 39 / 4 | 29 / 4 |
+| relative_emergency (held out) | 0 / 4 | 0 / 4 |
+| safe_account | 37 / 4 | 25 / 4 |
+| marketplace_qr (held out) | 0 / 4 | 0 / 3 |
+| utility_disconnection | 34 / 4 | 24 / 4 |
+| loan_app_fee (held out) | 0 / 4 | 0 / 4 |
