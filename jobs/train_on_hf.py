@@ -20,6 +20,8 @@ tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(url).read()), mode="r:gz"
 root = os.path.join("/tmp/src", os.listdir("/tmp/src")[0]); os.chdir(root)
 if a.stage == "sft":
     cmd = [sys.executable, "scripts/bankdesk_sft.py", "--base", a.base, "--train", a.train, "--out", "/tmp/model", "--push", a.push]
+elif a.stage == "dpo":
+    cmd = [sys.executable, "scripts/bankdesk_dpo.py", "--base", a.base, "--out", "/tmp/model", "--push", a.push]
 else:
     cmd = [sys.executable, "scripts/bankdesk_grpo.py", "--base", a.base, "--demos", a.train, "--out", "/tmp/model",
            "--max-steps", a.max_steps, "--push", a.push]
