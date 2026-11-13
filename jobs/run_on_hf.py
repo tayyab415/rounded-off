@@ -24,6 +24,7 @@ ap.add_argument("--sha", required=True); ap.add_argument("--stage", required=Tru
 ap.add_argument("--models", default=",".join(m[0] for m in MODELS)); ap.add_argument("--runs-repo", default="tyb343/rounded-off-runs")
 ap.add_argument("--extra", default=""); ap.add_argument("--strong", default="R_wise50")
 ap.add_argument("--cards", default="data/bankdesk/cards_v3.jsonl"); ap.add_argument("--evals", default=""); ap.add_argument("--rl-cards", default="cards_rl_all.jsonl")
+ap.add_argument("--extra-evals", default="")
 a = ap.parse_args()
 t0 = time.time()
 sh = lambda *c: (print("$", " ".join(c), flush=True), subprocess.run(c, check=True))
@@ -63,6 +64,9 @@ def one_model(tag, hf_id, q):
     if "bankdesk" in a.stage.split("+"):
         # --evals "cards_v3.jsonl:test:normal,cards_test2.jsonl:test2:clean,..." (cards file in data/bankdesk); default: --split list on --cards
         evals = [e.split(":") for e in a.evals.split(",")] if a.evals else [(os.path.basename(a.cards), sp, "normal") for sp in a.split.split(",")]
+        for spec in [x for x in a.extra_evals.split(";") if x]:          # "GRPO3,DPO3=cards_v3.jsonl:test:normal" runs first
+            tags, ev = spec.split("=", 1)
+            if tag in tags.split(","): evals = [e.split(":") for e in ev.split(",")] + evals
         for cards, split, signals in evals:
             sfx = ("" if split == "test" else f".{split}") + ("" if signals == "normal" else f".{signals}")
             for system in (["default", "strong"] if tag in a.strong.split(",") else ["default"]):  # strong = prompt-only control
@@ -76,8 +80,8 @@ def one_model(tag, hf_id, q):
 
 
 try:
-    for tag, hf_id, q in MODELS + extra:
-        if tag not in {w.split("=", 1)[0] for w in want}: continue
+    lookup = {t: (t, h, q) for t, h, q in MODELS + extra}
+    for tag, hf_id, q in [lookup[w.split("=", 1)[0]] for w in want if w.split("=", 1)[0] in lookup]:   # in --models order
         try: one_model(tag, hf_id, q)
         except Exception as e: failed.append(tag); print(f"FAILED {tag}: {e}", flush=True)
         print(f"[{time.time() - t0:.0f}s] done {tag}", flush=True)

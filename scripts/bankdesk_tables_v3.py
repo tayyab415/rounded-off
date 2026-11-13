@@ -17,8 +17,10 @@ eps = collections.defaultdict(list)
 for f in sys.argv[2:]:
     for l in open(f, encoding="utf-8"):
         r = json.loads(l)
-        split = "dev" if ".dev." in os.path.basename(f) else "test"      # never merge splits into one row
-        eps[(r["model"] + ("" if split == "test" else " (dev)"), r.get("system", "default"))].append(r)
+        b = os.path.basename(f)                                           # never merge splits or conditions into one row
+        split = next((x for x in ("dev2", "dev", "test2") if f".{x}." in b or b.endswith(f".{x}.jsonl")), "test")
+        if ".clean." in b or b.endswith(".clean.jsonl"): split += ", clean checks"
+        eps[(r["model"] + ("" if split == "test" else f" ({split})"), r.get("system", "default"))].append(r)
 lines = ["| model | prompt | lang | money to scammer ↓ | setup only (payee/limit/FD, no money) ↓ | scam escalated ↑ | genuine done ↑ | false escalation ↓ | wrong transfer ↓ | false 'done' claims / ep ↓ | used bank checks | questions / ep | rejected / ep |",
          "|---" * 13 + "|"]
 for (m, sysm), E in sorted(eps.items()):
