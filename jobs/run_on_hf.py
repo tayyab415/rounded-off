@@ -23,7 +23,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--sha", required=True); ap.add_argument("--stage", required=True); ap.add_argument("--split", default="test")
 ap.add_argument("--models", default=",".join(m[0] for m in MODELS)); ap.add_argument("--runs-repo", default="tyb343/rounded-off-runs")
 ap.add_argument("--extra", default=""); ap.add_argument("--strong", default="R_wise50")
-ap.add_argument("--cards", default="data/bankdesk/cards_v3.jsonl"); ap.add_argument("--evals", default="")
+ap.add_argument("--cards", default="data/bankdesk/cards_v3.jsonl"); ap.add_argument("--evals", default=""); ap.add_argument("--rl-cards", default="cards_rl_all.jsonl")
 a = ap.parse_args()
 t0 = time.time()
 sh = lambda *c: (print("$", " ".join(c), flush=True), subprocess.run(c, check=True))
@@ -60,7 +60,7 @@ def one_model(tag, hf_id, q):
         sh(py, "scripts/gen_vllm.py", "--model", path, "--tokenizer", "CohereLabs/tiny-aya-global", "--tag", tag,
            "--out", f"{out}/gen/{tag}.jsonl", "data/eval/scam_victim_en.jsonl", "data/eval/scam_victim_hi.jsonl",
            "data/eval/genuine_urgent_en.jsonl", "data/eval/genuine_urgent_hi.jsonl")
-    elif a.stage == "bankdesk":
+    if "bankdesk" in a.stage.split("+"):
         # --evals "cards_v3.jsonl:test:normal,cards_test2.jsonl:test2:clean,..." (cards file in data/bankdesk); default: --split list on --cards
         evals = [e.split(":") for e in a.evals.split(",")] if a.evals else [(os.path.basename(a.cards), sp, "normal") for sp in a.split.split(",")]
         for cards, split, signals in evals:
@@ -69,8 +69,8 @@ def one_model(tag, hf_id, q):
                 sh(py, "scripts/bankdesk_run.py", "--backend", f"vllm:{path}", "--tokenizer", "CohereLabs/tiny-aya-global",
                    "--cards", f"data/bankdesk/{cards}", "--split", split, "--signals", signals, "--system", system, "--tag", tag,
                    "--customer", "llm", "--out", f"{out}/{tag}.{system}{sfx}.jsonl", "--summary-out", f"{out}/{tag}.{system}{sfx}.summary.json")
-    elif a.stage == "passrate":
-        sh(py, "scripts/bankdesk_passrate.py", "--model", path, "--cards", "data/bankdesk/cards_rl.jsonl", "--split", "rl",
+    if "passrate" in a.stage.split("+"):
+        sh(py, "scripts/bankdesk_passrate.py", "--model", path, "--cards", f"data/bankdesk/{a.rl_cards}", "--split", "rl",
            "--n", "8", "--out", f"{out}/{tag}.states.jsonl", "--stats", f"{out}/{tag}.passrate.json")
     if q: sh("rm", "-rf", path)
 

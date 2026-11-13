@@ -79,8 +79,11 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--lang", required=True); ap.add_argument("--per-family", type=int, default=36)
     ap.add_argument("--k", type=int, default=6); ap.add_argument("--out", required=True)
+    ap.add_argument("--model", default=MODEL); ap.add_argument("--families", default="")
     a = ap.parse_args()
-    jobs = [(f, a.lang, a.k, i) for f in TRAIN_FAMILIES for i in range((a.per_family + a.k - 1) // a.k)]
+    MODEL = a.model
+    fams = [f for f in a.families.split(",") if f] or list(TRAIN_FAMILIES)
+    jobs = [(f, a.lang, a.k, i) for f in fams for i in range((a.per_family + a.k - 1) // a.k)]
     def safe(j):
         try: return j[0], batch(*j)
         except Exception as e: print("batch failed:", j[0], type(e).__name__, str(e)[:80], flush=True); return j[0], []
@@ -97,5 +100,5 @@ if __name__ == "__main__":
             if r: why[r] = why.get(r, 0) + 1; continue
             seen.add(c["opening"].strip().lower()); kept.append(c)
     with open(a.out, "w", encoding="utf-8") as f:
-        for c in kept: f.write(json.dumps({"source": "glm-5.3-flash", "enhanced_completion": json.dumps(c, ensure_ascii=False)}, ensure_ascii=False) + "\n")
+        for c in kept: f.write(json.dumps({"source": MODEL.split("/")[-1], "enhanced_completion": json.dumps(c, ensure_ascii=False)}, ensure_ascii=False) + "\n")
     print(f"{a.lang}: kept {len(kept)} of {sum(len(i) for _, i in results)}; rejected {why}")

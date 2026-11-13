@@ -70,6 +70,7 @@ if __name__ == "__main__":
     src = sys.argv[sys.argv.index("--in") + 1] if "--in" in sys.argv else "data/bankdesk/cards.jsonl"
     dst = sys.argv[sys.argv.index("--out") + 1] if "--out" in sys.argv else "data/bankdesk/card_review.jsonl"
     cards = [json.loads(l) for l in open(src, encoding="utf-8")]
+    if "--model" in sys.argv: MODEL = sys.argv[sys.argv.index("--model") + 1]
     if "--limit" in sys.argv: cards = cards[:int(sys.argv[sys.argv.index("--limit") + 1])]
     labels = label_batch(MODEL, SYSTEM, cards, render, allowed={"A", "B", "C", "D"}, batch=10, tag="card-review")
     with open(dst, "w", encoding="utf-8") as f:
