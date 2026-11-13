@@ -48,6 +48,15 @@ def make_reward(cases):
     return reward
 
 
+def make_cfg(cls, **kw):
+    """Build a TRL config, dropping settings the installed version does not know (TRL changes them between releases)."""
+    import dataclasses
+    known = {f.name for f in dataclasses.fields(cls)}
+    dropped = sorted(set(kw) - known)
+    if dropped: print("config: dropped unknown settings", dropped, flush=True)
+    return cls(**{k: v for k, v in kw.items() if k in known})
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", required=True); ap.add_argument("--demos", required=True); ap.add_argument("--out", required=True)
@@ -66,7 +75,7 @@ if __name__ == "__main__":
     print(f"{len(rows)} decision states from {len({r['case_id'] for r in rows})} train cases", flush=True)
     tok = AutoTokenizer.from_pretrained(a.base)
     model = AutoModelForCausalLM.from_pretrained(a.base, dtype=torch.bfloat16)
-    cfg = GRPOConfig(output_dir=a.out + "_ckpt", learning_rate=a.lr, beta=a.beta, num_generations=a.gens,
+    cfg = make_cfg(GRPOConfig, output_dir=a.out + "_ckpt", learning_rate=a.lr, beta=a.beta, num_generations=a.gens,
                      per_device_train_batch_size=a.gens * a.prompts_per_step, gradient_accumulation_steps=1,
                      max_completion_length=96, temperature=1.0, max_steps=a.max_steps, logging_steps=1, bf16=True,
                      gradient_checkpointing=True, save_strategy="no", report_to="none", seed=a.seed)

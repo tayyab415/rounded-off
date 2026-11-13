@@ -20,8 +20,17 @@ def turn_examples(path):
         r = json.loads(line); msgs = r["messages"]
         for i, m in enumerate(msgs):
             if m["role"] == "assistant":
-                out.append({"prompt": msgs[:i], "completion": [m], "lang": r["lang"], "variant": r["variant"]})
+                out.append({"prompt": msgs[:i], "completion": [m]})
     return out
+
+
+def make_cfg(cls, **kw):
+    """Build a TRL config, dropping settings the installed version does not know (TRL changes them between releases)."""
+    import dataclasses
+    known = {f.name for f in dataclasses.fields(cls)}
+    dropped = sorted(set(kw) - known)
+    if dropped: print("config: dropped unknown settings", dropped, flush=True)
+    return cls(**{k: v for k, v in kw.items() if k in known})
 
 
 if __name__ == "__main__":
@@ -35,9 +44,9 @@ if __name__ == "__main__":
     print(f"{len(ex)} turn examples from {a.train}", flush=True)
     tok = AutoTokenizer.from_pretrained(a.base)
     model = AutoModelForCausalLM.from_pretrained(a.base, dtype=torch.bfloat16)
-    cfg = SFTConfig(output_dir=a.out + "_ckpt", num_train_epochs=a.epochs, learning_rate=a.lr, per_device_train_batch_size=4,
+    cfg = make_cfg(SFTConfig, output_dir=a.out + "_ckpt", num_train_epochs=a.epochs, learning_rate=a.lr, per_device_train_batch_size=4,
                     gradient_accumulation_steps=2, max_length=2048, bf16=True, logging_steps=10, save_strategy="no",
-                    report_to="none", seed=a.seed, lr_scheduler_type="cosine", warmup_ratio=0.05, gradient_checkpointing=True)
+                    report_to="none", seed=a.seed, lr_scheduler_type="cosine", warmup_steps=10, gradient_checkpointing=True)
     peft = LoraConfig(r=a.rank, lora_alpha=2 * a.rank, lora_dropout=0.05, target_modules="all-linear", task_type="CAUSAL_LM")
     tr = SFTTrainer(model=model, args=cfg, train_dataset=Dataset.from_list(ex), processing_class=tok, peft_config=peft)
     tr.train()
