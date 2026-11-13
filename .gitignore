@@ -1,0 +1,25 @@
+.env
+.venv-ak/
+vendor/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+*.safetensors
+*.bin
+*.gguf
+*.gz
+# raw downloads and large intermediates (published on Hugging Face instead)
+data/raw/
+data/adaption/
+data/upload/
+data/cache/
+results/raw/
+# RBI FAQ text is "all rights reserved": publish only the fetch script, ids and URLs
+data/rbi/*.jsonl
+data/rbi/STATS.md
+data/eval/rbi_qa_*.jsonl
+data/eval/smoke*.jsonl
+# planted harmful rows (BeaverTails text) stay local; the aggregate recall table is committed
+results/curatorkit/contam10_rejected.jsonl
+results/curatorkit/planted_contam10.json

@@ -1,0 +1,213 @@
+{
+  "pipeline_config_hash": "455b83d8b118a4ca",
+  "run_timestamp": "2026-11-13T01:36:38.049461Z",
+  "source_files": [],
+  "stage_counts": {
+    "JSONLReader": {
+      "output_count": 3317,
+      "rejected_count": 0
+    },
+    "SchemaGate": {
+      "input_count": 3317,
+      "output_count": 3317,
+      "probe_recovered": 0,
+      "rejected_count": 0
+    },
+    "ExactDeduplicator": {
+      "input_count": 3317,
+      "output_count": 3317
+    },
+    "MinHashDeduplicator": {
+      "input_count": 3317,
+      "output_count": 3317
+    },
+    "TextCleaner": {
+      "input_count": 3317,
+      "output_count": 3317
+    },
+    "SecretsGate": {
+      "input_count": 3317,
+      "output_count": 3317,
+      "probe_recovered": 0,
+      "rejected_count": 0
+    },
+    "PIIPseudonymizer": {
+      "input_count": 3317,
+      "output_count": 3317
+    },
+    "ToxicityGate": {
+      "input_count": 3317,
+      "output_count": 3186,
+      "probe_recovered": 0,
+      "rejected_count": 131
+    },
+    "ShareGPTExporter": {
+      "exported_count": 3186
+    }
+  },
+  "rejected_breakdown": {
+    "toxic_content:classifier:0.702": 1,
+    "toxic_content:classifier:0.936": 1,
+    "toxic_content:classifier:0.908": 3,
+    "toxic_content:classifier:0.449": 1,
+    "toxic_content:classifier:0.150": 1,
+    "toxic_content:classifier:0.941": 1,
+    "toxic_content:classifier:0.360": 1,
+    "toxic_content:classifier:0.518": 1,
+    "toxic_content:classifier:0.943": 1,
+    "toxic_content:classifier:0.972": 2,
+    "toxic_content:classifier:0.864": 1,
+    "toxic_content:classifier:0.975": 1,
+    "toxic_content:classifier:0.819": 2,
+    "toxic_content:classifier:0.870": 1,
+    "toxic_content:classifier:0.960": 1,
+    "toxic_content:classifier:0.900": 1,
+    "toxic_content:classifier:0.260": 1,
+    "toxic_content:classifier:0.387": 1,
+    "toxic_content:classifier:0.277": 1,
+    "toxic_content:classifier:0.805": 1,
+    "toxic_content:classifier:0.991": 3,
+    "toxic_content:classifier:0.546": 1,
+    "toxic_content:classifier:0.934": 1,
+    "toxic_content:classifier:0.869": 1,
+    "toxic_content:classifier:0.123": 1,
+    "toxic_content:classifier:0.251": 1,
+    "toxic_content:classifier:0.762": 1,
+    "toxic_content:classifier:0.876": 1,
+    "toxic_content:classifier:0.813": 1,
+    "toxic_content:classifier:0.189": 1,
+    "toxic_content:classifier:0.994": 3,
+    "toxic_content:classifier:0.914": 1,
+    "toxic_content:classifier:0.250": 1,
+    "toxic_content:classifier:0.928": 2,
+    "toxic_content:classifier:0.656": 1,
+    "toxic_content:classifier:0.743": 1,
+    "toxic_content:classifier:0.829": 1,
+    "toxic_content:classifier:0.519": 1,
+    "toxic_content:classifier:0.103": 1,
+    "toxic_content:classifier:0.135": 1,
+    "toxic_content:classifier:0.393": 1,
+    "toxic_content:classifier:0.918": 1,
+    "toxic_content:classifier:0.589": 1,
+    "toxic_content:classifier:0.995": 1,
+    "toxic_content:classifier:0.556": 1,
+    "toxic_content:classifier:0.228": 2,
+    "toxic_content:classifier:0.888": 1,
+    "toxic_content:classifier:0.489": 1,
+    "toxic_content:classifier:0.851": 1,
+    "toxic_content:classifier:0.225": 2,
+    "toxic_content:classifier:0.912": 1,
+    "toxic_content:classifier:0.615": 1,
+    "toxic_content:classifier:0.787": 1,
+    "toxic_content:classifier:0.825": 1,
+    "toxic_content:classifier:0.895": 1,
+    "toxic_content:classifier:0.197": 1,
+    "toxic_content:classifier:0.671": 1,
+    "toxic_content:classifier:0.586": 1,
+    "toxic_content:classifier:0.838": 1,
+    "toxic_content:classifier:0.381": 1,
+    "toxic_content:classifier:0.856": 1,
+    "toxic_content:classifier:0.234": 1,
+    "toxic_content:classifier:0.451": 1,
+    "toxic_content:classifier:0.610": 1,
+    "toxic_content:classifier:0.993": 2,
+    "toxic_content:classifier:0.570": 1,
+    "toxic_content:classifier:0.885": 1,
+    "toxic_content:classifier:0.904": 1,
+    "toxic_content:classifier:0.906": 1,
+    "toxic_content:classifier:0.344": 1,
+    "toxic_content:classifier:0.628": 1,
+    "toxic_content:classifier:0.659": 1,
+    "toxic_content:classifier:0.954": 2,
+    "toxic_content:classifier:0.920": 1,
+    "toxic_content:classifier:0.497": 1,
+    "toxic_content:classifier:0.821": 1,
+    "toxic_content:classifier:0.925": 1,
+    "toxic_content:classifier:0.157": 1,
+    "toxic_content:classifier:0.725": 1,
+    "toxic_content:classifier:0.593": 1,
+    "toxic_content:classifier:0.651": 1,
+    "toxic_content:classifier:0.432": 1,
+    "toxic_content:classifier:0.237": 1,
+    "toxic_content:classifier:0.161": 1,
+    "toxic_content:classifier:0.530": 1,
+    "toxic_content:classifier:0.734": 1,
+    "toxic_content:classifier:0.134": 1,
+    "toxic_content:classifier:0.641": 2,
+    "toxic_content:classifier:0.623": 1,
+    "toxic_content:classifier:0.776": 1,
+    "toxic_content:classifier:0.456": 1,
+    "toxic_content:classifier:0.998": 1,
+    "toxic_content:classifier:0.307": 1,
+    "toxic_content:classifier:0.911": 1,
+    "toxic_content:classifier:0.680": 1,
+    "toxic_content:classifier:0.705": 1,
+    "toxic_content:classifier:0.992": 1,
+    "toxic_content:classifier:0.759": 1,
+    "toxic_content:classifier:0.990": 1,
+    "toxic_content:classifier:0.910": 1,
+    "toxic_content:classifier:0.114": 1,
+    "toxic_content:classifier:0.319": 1,
+    "toxic_content:classifier:0.301": 1,
+    "toxic_content:classifier:0.766": 1,
+    "toxic_content:classifier:0.405": 1,
+    "toxic_content:classifier:0.408": 1,
+    "toxic_content:classifier:0.915": 1,
+    "toxic_content:classifier:0.281": 1,
+    "toxic_content:classifier:0.111": 1,
+    "toxic_content:classifier:0.102": 1,
+    "toxic_content:classifier:0.988": 1,
+    "toxic_content:classifier:0.415": 1,
+    "toxic_content:classifier:0.137": 1,
+    "toxic_content:classifier:0.563": 1,
+    "toxic_content:classifier:0.937": 1,
+    "toxic_content:classifier:0.502": 1,
+    "toxic_content:classifier:0.122": 1
+  },
+  "dedup_stats": {
+    "near_duplicates_removed": 0,
+    "surviving_count": 3317
+  },
+  "minhash_threshold": 0.85,
+  "sampler_stats": null,
+  "token_stats": {
+    "total_prompt_tokens": 0,
+    "total_completion_tokens": 0,
+    "total_tokens": 0
+  },
+  "wall_clock_seconds": 1931.255,
+  "tool_versions": {
+    "curatorkit": "0.1.21",
+    "python": "3.12.16"
+  },
+  "diversity_stats": null,
+  "diagnostic_stats": null,
+  "diagnostic_files": [],
+  "provenance": {
+    "schema": "lexsi.provenance/1",
+    "library": "curatorkit",
+    "version": "0.1.21",
+    "git_sha": null,
+    "created_at": "2026-11-13T01:36:38Z",
+    "base_model": null,
+    "method": "curate",
+    "inputs": [
+      {
+        "kind": "dataset",
+        "ref": "sft_contam10.jsonl",
+        "config": null,
+        "provenance": null
+      }
+    ],
+    "params": {
+      "generator_model": null,
+      "judge_model": null,
+      "grpo_scoring_model": null,
+      "export_formats": [
+        "sharegpt"
+      ],
+      "output_split": null,
+      "pipeline_config_hash": "455b83d8b118a4ca"
+    }
+  }
+}
