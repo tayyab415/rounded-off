@@ -381,17 +381,44 @@ transfer, escalate to the fraud team, or reply. Each scenario card gives four ca
 open with the same message, and the same two with the story told up front. Code scores where the money went. Test:
 111 cards (67 EN, 44 HI, written by Adaption; 3 scam families never seen in training); 95% intervals resample cards.
 
-| model | money to the scammer, EN / HI ↓ | genuine task done, EN / HI ↑ |
+| model (test: 111 cards) | money to the scammer, EN / HI ↓ | genuine task done, EN / HI ↑ |
 |---|---|---|
 | M0: Tiny Aya Global | 88.8 / 90.9 | 78.4 / 85.2 |
 | R_wise50 (the model a bank following best practice would ship) | 94.8 / 83.0 | 97.0 / 79.5 |
 | R_wise50 + strong anti-scam system prompt | 91.0 / 80.7 | 97.8 / 86.4 |
 | R_wise50, 4-bit | 82.1 / 77.3 | 81.3 / 72.7 |
-| R_wise50 + BankDesk SFT | [[R]] | [[R]] |
-| R_wise50 + SFT + GRPO | [[R]] | [[R]] |
+| + BankDesk SFT (teacher demonstrations) | 6.0 / 5.7 | 96.3 / 98.9 |
+| + SFT + DPO (code-built preference pairs) | 3.7 / 5.7 | 97.0 / 100.0 |
+| **+ SFT + GRPO (pass-rate filtered)** | **0.7 / 2.3** | **96.3 / 97.7** |
 
-Tiny Aya runs the bank's own checks in about 90% of cases and then ignores what they show; it almost never asks the
-customer a question. A strong instruction to watch for scams barely changes the outcome. [[R: SFT / GRPO reading]]
+A second test set (273 more Adaption cards, 177 in Hindi, 79 from scam families never trained on) gives the same
+order: R_wise50 97.4 / 76.6, SFT 6.2 / 4.2, DPO 3.6 / 5.4, GRPO 2.1 / 1.4, with GRPO completing 99.0 / 95.2% of
+genuine tasks. 95% intervals (resampling cards) are in `results/bankdesk_v3/FINAL_*.md`.
+
+**The shortcut test.** Tiny Aya runs the bank's checks in about 90% of cases and then ignores what they show; it almost
+never asks the customer anything, and a strong instruction to watch for scams barely helps. After SFT the reverse risk
+appears: a model can learn "escalate when a check looks bad". In the normal test only 22 scam cases have clean bank
+checks, and SFT still paid the scammer in 10 of them. So we re-ran the whole test with every bank check forced clean
+(222 scam cases): the only way to catch the scam is to ask.
+
+| model (test, all bank checks clean) | money to the scammer, EN / HI ↓ | genuine task done, EN / HI | questions per case |
+|---|---|---|---|
+| R_wise50 | 98.5 / 77.3 | 98.5 / 73.9 | 0.00 |
+| + SFT | 48.5 / 60.2 | 98.5 / 100.0 | 0.01 |
+| + SFT + DPO | 37.3 / 52.3 | 98.5 / 100.0 | 0.18 |
+| + SFT + GRPO | 21.6 / 31.8 | 94.8 / 100.0 | 0.34 |
+
+GRPO halves the clean-check failure of SFT by learning to ask, and a fifth to a third of these scams still get through:
+when nothing looks wrong, the model still too often trusts the request. That is the main limitation of the fix.
+
+**Why GRPO needed a filter.** Three plain GRPO runs found no learning signal: the SFT policy is so sure of itself that
+four samples of the same decision almost always got the same reward, so group-relative advantages were zero (1, 8 and 7
+of 160 groups varied, on train cards, on the hard decisions, and on fresh cards). Following DAPO's dynamic sampling and
+RAGEN's variance filtering, we sampled every decision state of 438 fresh cards eight times with the SFT model and kept
+the 898 states (17%) whose rewards differed; most sit right after clean bank checks on scam cases. GRPO on those states
+(8 samples, clip-higher 0.28, no KL term, DAPO loss, 100 steps) is the model above. The reward is code only: replay the
+state, apply the sampled action, finish the episode with a label-aware script, score where the money went, minus 0.1 for
+a repeated check.
 
 ### 7.9 What did not work
 - CircuitKIT's llm-compressor GPTQ path produced incoherent Tiny Aya checkpoints at W4, even with 128 calibration
