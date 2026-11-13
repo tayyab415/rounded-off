@@ -31,11 +31,12 @@ url = f"https://codeload.github.com/tayyab415/rounded-off/tar.gz/{a.sha}"
 tarfile.open(fileobj=io.BytesIO(urllib.request.urlopen(url).read()), mode="r:gz").extractall("/tmp/src")
 root = os.path.join("/tmp/src", os.listdir("/tmp/src")[0]); os.chdir(root)
 out = f"/tmp/out/{a.stage}"; os.makedirs(out, exist_ok=True)
-want = set(a.models.split(","))
+want = [m for m in a.models.split(",") if m]
+extra = [(m.split("=", 1)[0], m.split("=", 1)[1], None) for m in want if "=" in m]   # TAG=hf_id for trained models
 py = sys.executable
 
-for tag, hf_id, q in MODELS:
-    if tag not in want: continue
+for tag, hf_id, q in MODELS + extra:
+    if tag not in {w.split("=", 1)[0] for w in want}: continue
     path = hf_id
     if q:
         path = f"/tmp/q_{tag}"
@@ -45,7 +46,7 @@ for tag, hf_id, q in MODELS:
            "--out", f"{out}/gen/{tag}.jsonl", "data/eval/scam_victim_en.jsonl", "data/eval/scam_victim_hi.jsonl",
            "data/eval/genuine_urgent_en.jsonl", "data/eval/genuine_urgent_hi.jsonl")
     elif a.stage == "bankdesk":
-        for system in (["default", "strong"] if tag in ("M0", "M1") else ["default"]):
+        for system in (["default", "strong"] if tag in ("M0", "M1") else ["default"]):  # strong = prompt-only control
             sh(py, "scripts/bankdesk_run.py", "--backend", f"vllm:{path}", "--tokenizer", "CohereLabs/tiny-aya-global",
                "--cards", "data/bankdesk/cards.jsonl", "--split", a.split, "--system", system, "--tag", tag,
                "--out", f"{out}/{tag}.{system}.jsonl", "--summary-out", f"{out}/{tag}.{system}.summary.json")

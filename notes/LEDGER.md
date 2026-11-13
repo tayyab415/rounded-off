@@ -12,6 +12,8 @@ Adaption credits (1,200 at start):
 | 2026-11-12 22:50 | EBS grown 200 -> 300 GB gp3 | +~/bin/zsh.01/h | disk was 89% full |
 | 2026-11-12 23:20 | Adaption: AdvBench refusals 424+hi (9), Banking77 test refs (5) | ~266 total |
 | 2026-11-13 18:58 IST | Adaption: scam-victim set 700+hi-IN (140, dataset 9779cdbc), genuine-urgent controls 500+hi-IN (100, dataset 67bcb156) | ~506 total (652 left) |
+| 2026-11-13 19:29 IST | Adaption: BankDesk scenario cards EN 500 (893fff9b, 50) + native-HI 300 (547dc66f, 30; only 58 rows returned) | |
+| 2026-11-13 19:52 IST | Adaption: augment HI cards +250 similar rows (70c4c705) | 3 |
 | 2026-11-13 06:40 | IAM role + instance profile lexsi-ssm-20261113 (SSM backup access) | free | delete at teardown |
 | 2026-11-13 13:20 IST | Bedrock gpt-6-luna, all eval sets EN+HI (3,254 calls) | ~$0.3 est. | ROI quality reference |
 | 2026-11-13 13:35 IST | Spend check: EC2 up since 2026-11-12 20:01 IST (~17.5 h, ~$14.1) + EBS ~$0.5 | | cap now $25; watchdog stops VM at 2026-11-14 01:30 IST |
