@@ -88,6 +88,8 @@ if __name__ == "__main__":
     ap.add_argument("--all-openings", action="store_true"); ap.add_argument("--opening-weight", type=int, default=1)
     ap.add_argument("--post-check-states", action="store_true"); ap.add_argument("--clean-scam-weight", type=int, default=4)
     ap.add_argument("--no-demo-states", action="store_true"); ap.add_argument("--split", default="train")
+    ap.add_argument("--states"); ap.add_argument("--epsilon-high", type=float, default=0.2); ap.add_argument("--loss-type", default="grpo")
+    ap.add_argument("--temperature", type=float, default=1.0)
     a = ap.parse_args()
     import torch
     from datasets import Dataset
@@ -96,6 +98,9 @@ if __name__ == "__main__":
     from trl import GRPOConfig, GRPOTrainer
     t0 = time.time()
     rows, cases = build_states(a.demos, a.cards, a.split)
+    if a.states:                    # pass-rate-filtered states (scripts/bankdesk_passrate.py): every group has signal
+        rows = [{k: s[k] for k in ("prompt", "case_id", "prior", "variant", "clarity", "lang")} for s in map(json.loads, open(a.states, encoding="utf-8"))]
+        print(f"{len(rows)} pass-rate-filtered states from {a.states}", flush=True)
     if a.no_demo_states:            # keep only opening decisions from the demos; mid-episode demo states are all easy for SFT
         rows = [r for r in rows if r["prior"] == "[]"]
     if a.all_openings:
@@ -127,7 +132,7 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(a.base, dtype=torch.bfloat16)
     cfg = make_cfg(GRPOConfig, output_dir=a.out + "_ckpt", learning_rate=a.lr, beta=a.beta, num_generations=a.gens,
                      per_device_train_batch_size=a.gens * a.prompts_per_step, gradient_accumulation_steps=1,
-                     max_completion_length=96, temperature=1.0, max_steps=a.max_steps, logging_steps=1, bf16=True,
+                     max_completion_length=96, temperature=a.temperature, epsilon_high=a.epsilon_high, loss_type=a.loss_type, max_steps=a.max_steps, logging_steps=1, bf16=True,
                      gradient_checkpointing=True, save_strategy="no", report_to="none", seed=a.seed)
     peft = LoraConfig(r=16, lora_alpha=32, lora_dropout=0.0, target_modules="all-linear", task_type="CAUSAL_LM")
     tr = GRPOTrainer(model=model, reward_funcs=[make_reward(cases, a.gens)], args=cfg, train_dataset=Dataset.from_list(rows).shuffle(seed=a.seed),
