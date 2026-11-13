@@ -78,6 +78,7 @@ if __name__ == "__main__":
     ap.add_argument("--lr", type=float, default=2e-5); ap.add_argument("--beta", type=float, default=0.02)
     ap.add_argument("--gens", type=int, default=4); ap.add_argument("--prompts-per-step", type=int, default=8)
     ap.add_argument("--push"); ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--all-openings", action="store_true"); ap.add_argument("--opening-weight", type=int, default=1)
     a = ap.parse_args()
     import torch
     from datasets import Dataset
@@ -86,6 +87,17 @@ if __name__ == "__main__":
     from trl import GRPOConfig, GRPOTrainer
     t0 = time.time()
     rows, cases = build_states(a.demos, a.cards, "train")
+    if a.all_openings:
+        # also the opening decision of EVERY train case, including those the teacher failed (mostly scams whose bank
+        # checks look clean: the SFT model's weak spot); the reward needs no demonstration for these
+        have = {r["case_id"] for r in rows if r["prior"] == "[]"}
+        for cid, c in cases.items():
+            if cid in have: continue
+            ep = bd.Episode(c)
+            rows.append({"prompt": bd.messages(ep), "case_id": cid, "prior": "[]", "variant": c.variant,
+                         "clarity": c.clarity, "lang": c.lang})
+    if a.opening_weight > 1:                    # the first decision (ask / check / act) is where the shortcut lives
+        rows += [r for r in rows if r["prior"] == "[]"] * (a.opening_weight - 1)
     print(f"{len(rows)} decision states from {len({r['case_id'] for r in rows})} train cases", flush=True)
     tok = AutoTokenizer.from_pretrained(a.base)
     model = AutoModelForCausalLM.from_pretrained(a.base, dtype=torch.bfloat16)
