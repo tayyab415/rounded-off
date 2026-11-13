@@ -93,7 +93,12 @@ reference model (section 7.7).
 ## 3. Models and licenses
 - CohereLabs/tiny-aya-global (the model we fine-tune and ship) and CohereLabs/tiny-aya-base (only to build RESTA's and
   LoX's safety vector, Global minus Base): CC-BY-NC-4.0. All derived checkpoints inherit it.
-- Judges: Qwen/Qwen3Guard-Gen-8B (Apache-2.0), Qwen/Qwen3-8B (Apache-2.0). Used only to score outputs.
+- Judges: Qwen/Qwen3Guard-Gen-8B (Apache-2.0), Qwen/Qwen3-8B (Apache-2.0), run on our GPU for every answer that may
+  contain harmful content; DeepSeek-V4.1-Flash (MIT, Nebius) for the scam-victim rubric, checked against hand labels.
+  Used only to score outputs.
+- Teacher and data writers: GLM-5.3-Flash (MIT, Nebius) plays the bank agent to produce SFT demonstrations and writes
+  training cards; it also plays the BankDesk customer. DeepSeek-V4.1-Flash (MIT) writes extra RL and dev cards. Neither
+  is a model we ship; Tiny Aya is the only model trained.
 - Reference: GPT-6 Luna (OpenAI, through Amazon Bedrock, proprietary). Answers the eval prompts once for comparison;
   never used for training.
 
@@ -103,6 +108,8 @@ reference model (section 7.7).
 | Banking77 (PolyAI) | real customer questions for fine-tuning (train split) and the bank task eval (test split) | CC-BY-4.0 |
 | Adaption-generated answers, hi-IN localization | assistant answers for the fine-tune and task references | generated for this project |
 | Bank red-team and borderline prompts (Adaption) | bank fraud requests and safe-but-risky-sounding bank questions | CC-BY-4.0 (ours) |
+| Scam-victim and genuine urgent requests (Adaption, hi-IN localization) | does the assistant help a customer who is being scammed | CC-BY-4.0 (ours) |
+| BankDesk scenario cards (Adaption test; GLM-5.3-Flash and DeepSeek-V4.1-Flash train, dev and RL) | agent simulator cases, SFT demonstrations, preference pairs | CC-BY-4.0 (ours); generators' outputs are MIT-licensed models' outputs |
 | BeaverTails | 332 harmful answers mixed into C1's fine-tune | CC-BY-NC-4.0 |
 | HarmBench (150 standard behaviors) | harmful prompts | MIT |
 | XSTest (250 safe, 200 unsafe) | over-refusal and contrast | CC-BY-4.0 |
@@ -129,6 +136,8 @@ https://huggingface.co/collections/tyb343/rounded-off-datasets-6af6c184940f83fb5
 | dataset | contents |
 |---|---|
 | `tyb343/bank-redteam-en-hi` | the bank red-team (250 EN / 250 HI) and borderline (400 / 395) prompts on their own, for anyone testing a bank model |
+| `tyb343/bank-scam-victims-en-hi` | 300 scam-victim and 250 genuine urgent requests per language, for testing whether a bank assistant protects customers who are being scammed |
+| `tyb343/bankdesk-scenario-cards` | BankDesk: 607 reviewed scenario cards (train / dev / test), 273 more test cards, 65 more dev cards, 438 fresh cards for DPO and GRPO, 1,508 SFT conversations, 2,424 DPO pairs, 898 GRPO states |
 | `tyb343/rounded-off-bank-sft` | 2,992 bank support chats (EN + HI) used for fine-tuning |
 | `tyb343/rounded-off-eval-sets` | every eval prompt in English and Hindi, with task references |
 | `tyb343/rounded-off-banking77-seed` | the Banking77 questions behind the fine-tune and the bank task |
