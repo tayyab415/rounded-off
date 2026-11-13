@@ -23,6 +23,7 @@ ap = argparse.ArgumentParser()
 ap.add_argument("--sha", required=True); ap.add_argument("--stage", required=True); ap.add_argument("--split", default="test")
 ap.add_argument("--models", default=",".join(m[0] for m in MODELS)); ap.add_argument("--runs-repo", default="tyb343/rounded-off-runs")
 ap.add_argument("--extra", default=""); ap.add_argument("--strong", default="R_wise50")
+ap.add_argument("--cards", default="data/bankdesk/cards_v3.jsonl")
 a = ap.parse_args()
 t0 = time.time()
 sh = lambda *c: (print("$", " ".join(c), flush=True), subprocess.run(c, check=True))
@@ -60,10 +61,12 @@ def one_model(tag, hf_id, q):
            "--out", f"{out}/gen/{tag}.jsonl", "data/eval/scam_victim_en.jsonl", "data/eval/scam_victim_hi.jsonl",
            "data/eval/genuine_urgent_en.jsonl", "data/eval/genuine_urgent_hi.jsonl")
     elif a.stage == "bankdesk":
-        for system in (["default", "strong"] if tag in a.strong.split(",") else ["default"]):  # strong = prompt-only control
-            sh(py, "scripts/bankdesk_run.py", "--backend", f"vllm:{path}", "--tokenizer", "CohereLabs/tiny-aya-global",
-               "--cards", "data/bankdesk/cards_v3.jsonl", "--split", a.split, "--system", system, "--tag", tag,
-               "--customer", "llm", "--out", f"{out}/{tag}.{system}.jsonl", "--summary-out", f"{out}/{tag}.{system}.summary.json")
+        for split in a.split.split(","):                                         # e.g. "dev,test"
+            sfx = "" if split == "test" else f".{split}"
+            for system in (["default", "strong"] if tag in a.strong.split(",") else ["default"]):  # strong = prompt-only control
+                sh(py, "scripts/bankdesk_run.py", "--backend", f"vllm:{path}", "--tokenizer", "CohereLabs/tiny-aya-global",
+                   "--cards", a.cards, "--split", split, "--system", system, "--tag", tag,
+                   "--customer", "llm", "--out", f"{out}/{tag}.{system}{sfx}.jsonl", "--summary-out", f"{out}/{tag}.{system}{sfx}.summary.json")
     if q: sh("rm", "-rf", path)
 
 
