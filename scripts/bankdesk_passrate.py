@@ -50,4 +50,10 @@ summary = {f"{v}/{st}": {"states": stats[(v, st, "n")], "mixed": stats[(v, st, "
            for v in ("scam", "genuine") for st in ("opening", "after_verify", "after_checks")}
 summary["total"] = {"states": len(states), "kept_mixed": len(keep), "secs": round(time.time() - t0)}
 json.dump(summary, open(a.stats, "w"), indent=1); print(json.dumps(summary, indent=1), flush=True)
-sys.stdout.flush(); os._exit(0)
+sys.stdout.flush(); sys.stderr.flush()
+try:  # vLLM's engine child keeps the GPU after os._exit; kill it so the next model can load (DPO3 failed on this)
+    import psutil
+    for _c in psutil.Process().children(recursive=True): _c.kill()
+except Exception:
+    pass
+os._exit(0)
