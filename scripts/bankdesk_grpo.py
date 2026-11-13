@@ -87,7 +87,7 @@ if __name__ == "__main__":
     ap.add_argument("--push"); ap.add_argument("--seed", type=int, default=13)
     ap.add_argument("--all-openings", action="store_true"); ap.add_argument("--opening-weight", type=int, default=1)
     ap.add_argument("--post-check-states", action="store_true"); ap.add_argument("--clean-scam-weight", type=int, default=4)
-    ap.add_argument("--no-demo-states", action="store_true")
+    ap.add_argument("--no-demo-states", action="store_true"); ap.add_argument("--split", default="train")
     a = ap.parse_args()
     import torch
     from datasets import Dataset
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from trl import GRPOConfig, GRPOTrainer
     t0 = time.time()
-    rows, cases = build_states(a.demos, a.cards, "train")
+    rows, cases = build_states(a.demos, a.cards, a.split)
     if a.no_demo_states:            # keep only opening decisions from the demos; mid-episode demo states are all easy for SFT
         rows = [r for r in rows if r["prior"] == "[]"]
     if a.all_openings:
