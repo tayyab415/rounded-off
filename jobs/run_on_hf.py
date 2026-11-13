@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["vllm==0.33.0", "huggingface_hub>=1.0", "psutil"]
+# dependencies = ["vllm==0.33.0", "huggingface_hub>=1.0", "psutil", "accelerate"]
 # ///
 """HF Jobs entry point: fetch the repo at a pinned commit, run one stage, upload outputs to a private dataset repo.
 
@@ -35,8 +35,19 @@ want = [m for m in a.models.split(",") if m]
 extra = [(m.split("=", 1)[0], m.split("=", 1)[1], None) for m in want if "=" in m]   # TAG=hf_id for trained models
 py = sys.executable
 
-for tag, hf_id, q in MODELS + extra:
-    if tag not in {w.split("=", 1)[0] for w in want}: continue
+failed = []
+
+
+def upload(note=""):
+    from huggingface_hub import HfApi
+    api = HfApi(); api.create_repo(a.runs_repo, repo_type="dataset", private=True, exist_ok=True)
+    open(f"{out}/STATUS.txt", "w").write(f"failed: {failed}\n{note}\n")
+    api.upload_folder(folder_path=out, repo_id=a.runs_repo, repo_type="dataset", path_in_repo=f"{a.stage}/{a.sha[:7]}",
+                      commit_message=f"{a.stage} @ {a.sha[:7]}")
+    print(f"uploaded to {a.runs_repo}/{a.stage}/{a.sha[:7]} after {time.time() - t0:.0f}s (failed: {failed})", flush=True)
+
+
+def one_model(tag, hf_id, q):
     path = hf_id
     if q:
         path = f"/tmp/q_{tag}"
@@ -51,14 +62,17 @@ for tag, hf_id, q in MODELS + extra:
                "--cards", "data/bankdesk/cards.jsonl", "--split", a.split, "--system", system, "--tag", tag,
                "--out", f"{out}/{tag}.{system}.jsonl", "--summary-out", f"{out}/{tag}.{system}.summary.json")
     if q: sh("rm", "-rf", path)
-    print(f"[{time.time() - t0:.0f}s] done {tag}", flush=True)
 
-if a.stage == "chat_victim":
-    gens = sorted(f"{out}/gen/{f}" for f in os.listdir(f"{out}/gen"))
-    sh(py, "scripts/judge_victim.py", f"{out}/judged", *gens)
 
-from huggingface_hub import HfApi
-api = HfApi(); api.create_repo(a.runs_repo, repo_type="dataset", private=True, exist_ok=True)
-api.upload_folder(folder_path=out, repo_id=a.runs_repo, repo_type="dataset", path_in_repo=f"{a.stage}/{a.sha[:7]}",
-                  commit_message=f"{a.stage} @ {a.sha[:7]}")
-print(f"uploaded to {a.runs_repo}/{a.stage}/{a.sha[:7]} after {time.time() - t0:.0f}s", flush=True)
+try:
+    for tag, hf_id, q in MODELS + extra:
+        if tag not in {w.split("=", 1)[0] for w in want}: continue
+        try: one_model(tag, hf_id, q)
+        except Exception as e: failed.append(tag); print(f"FAILED {tag}: {e}", flush=True)
+        print(f"[{time.time() - t0:.0f}s] done {tag}", flush=True)
+    if a.stage == "chat_victim" and os.path.isdir(f"{out}/gen"):
+        gens = sorted(f"{out}/gen/{f}" for f in os.listdir(f"{out}/gen"))
+        try: sh(py, "scripts/judge_victim.py", f"{out}/judged", *gens)
+        except Exception as e: failed.append("judge"); print(f"FAILED judge: {e}", flush=True)
+finally:
+    upload()
