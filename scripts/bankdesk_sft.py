@@ -38,14 +38,15 @@ if __name__ == "__main__":
     ap.add_argument("--base", required=True); ap.add_argument("--train", required=True); ap.add_argument("--out", required=True)
     ap.add_argument("--push"); ap.add_argument("--epochs", type=float, default=2); ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--rank", type=int, default=16); ap.add_argument("--seed", type=int, default=13)
+    ap.add_argument("--bs", type=int, default=4); ap.add_argument("--accum", type=int, default=2)
     a = ap.parse_args()
     t0 = time.time()
     ex = turn_examples(a.train)
     print(f"{len(ex)} turn examples from {a.train}", flush=True)
     tok = AutoTokenizer.from_pretrained(a.base)
     model = AutoModelForCausalLM.from_pretrained(a.base, dtype=torch.bfloat16)
-    cfg = make_cfg(SFTConfig, output_dir=a.out + "_ckpt", num_train_epochs=a.epochs, learning_rate=a.lr, per_device_train_batch_size=4,
-                    gradient_accumulation_steps=2, max_length=2048, bf16=True, logging_steps=10, save_strategy="no",
+    cfg = make_cfg(SFTConfig, output_dir=a.out + "_ckpt", num_train_epochs=a.epochs, learning_rate=a.lr, per_device_train_batch_size=a.bs,
+                    gradient_accumulation_steps=a.accum, max_length=2048, bf16=True, logging_steps=10, save_strategy="no",
                     report_to="none", seed=a.seed, lr_scheduler_type="cosine", warmup_steps=10, gradient_checkpointing=True)
     peft = LoraConfig(r=a.rank, lora_alpha=2 * a.rank, lora_dropout=0.05, target_modules="all-linear", task_type="CAUSAL_LM")
     tr = SFTTrainer(model=model, args=cfg, train_dataset=Dataset.from_list(ex), processing_class=tok, peft_config=peft)
