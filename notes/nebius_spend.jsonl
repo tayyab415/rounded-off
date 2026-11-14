@@ -27021,3 +27021,9 @@
 {"t": "2026-11-14T05:05:28", "model": "zai-org/GLM-5.3-Flash", "tag": "victim_v2-jury-single", "in": 1550, "cached": 1216, "out": 22, "usd": 9.8e-05}
 {"t": "2026-11-14T05:05:29", "model": "zai-org/GLM-5.3-Flash", "tag": "victim_v2-jury-single", "in": 2251, "cached": 1216, "out": 24, "usd": 0.000204}
 {"t": "2026-11-14T05:05:30", "model": "zai-org/GLM-5.3-Flash", "tag": "victim_v2-jury", "in": 3399, "cached": 1216, "out": 45, "usd": 0.000386}
+{"t": "2026-11-14T04:04:21", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 706, "out": 113, "usd": 0.000162}
+{"t": "2026-11-14T04:04:25", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 320, "out": 40, "usd": 6.8e-05}
+{"t": "2026-11-14T04:06:43", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 310, "out": 47, "usd": 7e-05}
+{"t": "2026-11-14T04:06:43", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 300, "out": 50, "usd": 7e-05}
+{"t": "2026-11-14T04:06:48", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 284, "out": 27, "usd": 5.6e-05}
+{"t": "2026-11-14T04:06:49", "model": "zai-org/GLM-5.3-Flash", "tag": "customer", "in": 307, "out": 41, "usd": 6.7e-05}

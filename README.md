@@ -40,7 +40,13 @@ python scripts/bankdesk_run.py --backend vllm:tyb343/rounded-off-bankdesk-grpo-v
   --cards data/bankdesk/cards_v3.jsonl --split test --customer llm --tag GRPO3 --out ep.jsonl   # add --signals clean for the stress test
 python3 -I scripts/bankdesk_tables_v3.py table.md ep.jsonl          # money to scammer, genuine done, questions, with card-level CIs
 python3 -m pytest tests/test_bankdesk.py                             # simulator and rubric tests
+python3 scripts/bankdesk_transcripts.py ep.jsonl data/bankdesk/cards_v3.jsonl ep.md \
+  --compare results/raw/bankdesk_final_GRPO3.default.jsonl          # readable tool-call transcripts, diffed against our run
 ```
+
+`results/live_check/` is a re-run of GRPO3 on a fresh GPU with the command above (36 test episodes, the same 36 with
+every check forced clean, and 8 from two hand-written cards). It gave the same outcome as our test run in all 72 test
+episodes and the same tool sequence in 69 of 72; read `replay.md` to see each tool call and what the bank returned.
 
 - Environment: `scripts/bankdesk.py` (tools, state, rubric), `scripts/bankdesk_customer.py` (LLM customer with cache),
   design in `notes/ENV_DESIGN.md`, review in `notes/SOL_REVIEW.md`. Cards and all training data:
