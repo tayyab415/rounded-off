@@ -154,7 +154,8 @@ text (all rights reserved; `scripts/fetch_rbi.py` rebuilds it), and model answer
 2 epochs, effective batch 8, max length 1,024, seed 13) on 2,985 bank support chats: Banking77 customer questions with
 answers written by Adaption, 1,994 in English and 998 localized to Hindi (India), cleaned by CuratorKIT. C1 is the same
 fine-tune with 332 unsafe BeaverTails rows mixed in (10% of 3,317). C2 trains on C1's data with SafeTune's
-`SafeGradTrainer` (rho 0.1) and 823 refusal pairs (AdvBench prompts, Adaption refusals, English and Hindi).
+`SafeGradTrainer` (rho 0.1) and 823 refusal pairs (AdvBench prompts, Adaption refusals, English and Hindi), at effective
+batch 2: the trainer rejects gradient accumulation and batch 4 ran out of memory.
 
 **Repairs (no training).** On M1 and C1 we apply SafeTune's RESTA (alpha 0.10, 0.25, 0.40), WiSE-FT (alpha 0.5) and LoX
 (rank 8, factor 0.3; rank 64, factor 1.5). Names: R_* repairs M1, CR_* repairs C1. RESTA and LoX add a safety vector
@@ -265,6 +266,8 @@ This was our starting question. It does not. Harmful-answer rate (EN / HI) at ea
 | CR_wise50 | bank red-team | 52.8 / 44.0 | 47.6 / 37.6 | 52.4 / 42.8 |
 | CR_resta10 | HarmBench | 46.7 / 21.6 | 34.7 / 18.2 | 20.7 / 10.8 |
 | CR_resta10 | bank red-team | 64.0 / 34.0 | 59.6 / 32.4 | 45.6 / 36.0 |
+| C2: SafeGrad | HarmBench | 65.3 / 41.2 | 62.0 / 33.1 | 28.0 / 20.3 |
+| C2: SafeGrad | bank red-team | 75.2 / 41.2 | 70.8 / 41.6 | 56.8 / 42.0 |
 
 No repaired model gets measurably more harmful after rounding: wherever harm rises, the 95% intervals before and after
 overlap (the largest rise is M1 at 3-bit on the bank set, 15.2 → 20.4 in English and 13.2 → 19.2 in Hindi). Rounding lowers HarmBench harm on its own (C1: 59.3 → 43.3 → 30.0),
@@ -546,7 +549,9 @@ The repairs add nothing to serving cost. WiSE-FT and RESTA are one-off weight ed
 the same machine, including loading and saving the checkpoints. SafeGrad, the train-time defense, needs a full retrain
 (2.3 hours for C2 on one A10G, against 1.7 hours for plain fine-tuning of C1 on an L4). Our quantized models store de-quantized weights, so they run at bf16 speed; the saving
 from real 4-bit kernels (about 3.9x less weight memory at 4.1 bits per weight) is not in these numbers. The whole
-project, all training and evaluation, cost [[R: final AWS spend]] on AWS plus about $0.30 for the Luna reference.
+project, all training and evaluation, cost about $27.50 on AWS (GPU time and disk), $11.76 on Hugging Face Jobs for
+BankDesk training and evaluation, about $6.50 on Nebius for the teacher, the LLM customer and the victim judge, and about
+$0.30 for the Luna reference.
 
 ## Limitations and ethics
 - **One seed.** Every fine-tune ran once. The intervals cover prompt sampling, not training noise.
