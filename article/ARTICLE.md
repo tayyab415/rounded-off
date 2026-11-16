@@ -43,24 +43,26 @@ The full technical write-up, with every table and caveat, is
 ![Scams paid against genuine customers blocked, for R_wise50, GRPO3 and three bank rules, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/bankdesk.png)
 
 ## Abstract
-We set out to answer a narrow question: when a bank fine-tunes a small open model, repairs its safety and shrinks it to
-4-bit, does the repair survive the rounding? It does. But on the way we found that the safety check banks rely on, a
-generic benchmark, misses the fraud a bank actually faces. Then we gave the model a bank account to act on, and it sent
-a scam victim's money to the scammer 95% of the time.
+We trained a 3-billion-parameter model to stop bank scam payments, and it beats the bank's own fraud rules.
 
-**Chat model.** We fine-tune Cohere's Tiny Aya Global (3.35B) into an English and Hindi bank assistant, repair it with
-SafeTune and round it to 4-bit and 3-bit. The repairs fix HarmBench far more than our bank red-team (WiSE-FT on a
-contaminated fine-tune: 59.3% → 16.7% on HarmBench, 68.4% → 52.8% on the bank set), and rounding does not measurably
-undo any repair. No chat-trained Tiny Aya model passes our bank release gate.
+Most bank fraud in India is now authorised by the victim: a customer, talked into it by a fake officer, asks the bank
+to send the money. We built BankDesk, a simulated bank where the model acts on an account with nine tools while an LLM
+plays the customer, and code scores where the money went. Cohere's Tiny Aya Global (3.35B), fine-tuned as a bank
+assistant and safety-repaired with SafeTune, sent the money to the scammer in 94.8% of held-out scam cases in English
+and 83.0% in Hindi. After SFT on teacher demonstrations and GRPO with a reward computed by code, it sends 0.7% / 2.3%,
+135 times fewer in English, while still completing 96% / 98% of genuine payments. The bank's strictest rule ("hold if
+any check flags") lets 11.9% / 6.8% of the same scams through and blocks 34% / 36% of genuine customers; the agent
+blocks 3.7% / 2.3%. It holds after compression to 4-bit (0.7% / 1.1%) and on 273 new test cards (2.1% / 1.4%).
 
-**Agent.** Most bank fraud in India is now authorised by the victim. In BankDesk (nine tools, an LLM customer, code
-that scores where the money went) the repaired model pays the scammer in 94.8% (EN) and 83.0% (HI) of held-out scam
-cases. SFT on GLM teacher demonstrations, then GRPO with a code-only reward on the decision states where the model was
-unsure, cut that to 0.7% / 2.3% while completing 96% / 98% of genuine payments. It holds at 4-bit. It still fails
-coached victims (52% / 57%) and requests that are not payments, and the next version of the simulator is built to fix
-that.
+The training also made the chat model safer than Cohere's own release, with no chat safety data: help with bank fraud
+requests fell to 4.4% (English) and 14.4% (Hindi), against 26.0% / 31.6% for Tiny Aya Global as released.
 
-We release the models, the data, BankDesk and two release gates a bank can run.
+Along the way we found why this matters: the generic safety benchmark misses bank fraud. SafeTune's repairs remove 72%
+of a contaminated model's HarmBench harm but only 23% of its bank fraud harm, compressing to 4-bit does not undo them,
+and no chat-trained Tiny Aya model passes our bank release gate.
+
+The agent still fails victims coached on what to say (52% / 57% of ambiguous scams paid) and requests that are not
+payments; BankDesk v4 is built to fix that. We release the models, the data, BankDesk and two release gates.
 
 ## 1. What we built, in one table
 
