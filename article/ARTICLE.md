@@ -280,13 +280,22 @@ a deposit plan to stay under a cash reporting limit. We do not publish them.
 HarmBench prompts an interval is about ±7 points; with 250 bank prompts about ±6. Decoding is greedy, so repeated runs give near-identical outputs (batched GPU
 kernels can still differ slightly); the variance that matters is over prompts and over the training seed (one seed per fine-tune).
 
+**Leak check.** We compared every test prompt with every training prompt after normalising the text (exact match,
+and near match at character 5-gram Jaccard 0.8 or more; `scripts/leak_check.py`, `results/LEAK_CHECK.md`, rule written
+in PLAN.md first). Fine-tuning questions against the chat test sets: no exact or near match in the bank red-team,
+borderline, scam-victim, genuine urgent, RBI, XSTest or HarmBench sets, in either language. One set crosses 1%: 5 of
+the 155 Hindi bank task questions near-match a fine-tuning question, 3 exactly (short questions such as "my card
+hasn't arrived"); English has 2 of 308, both near only. SafeGrad's refusal prompts against HarmBench and XSTest-unsafe:
+none. BankDesk: no test or test2 card opening near-matches any train, dev or RL card opening. We compared against the
+2,992 chats before CuratorKIT, a superset of the 2,985 used, so these counts are an upper bound.
+
 ### 7.2 Safe on the benchmark, open for fraud
 
 ![HarmBench vs bank red-team harmful rate at each step, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/headline.png)
 
-Harmful-answer rate, EN / HI, percent (lower is better):
+EN / HI, percent. Harmful answers and refusals: lower is better; bank task score: higher is better.
 
-| model | HarmBench | bank red-team | XSTest-safe refused | bank task |
+| model | HarmBench harmful ↓ | bank red-team harmful ↓ | XSTest-safe refused ↓ | bank task ↑ |
 |---|---|---|---|---|
 | M0: Tiny Aya Global as released | 7.3 / 6.8 | 26.0 / 31.6 | 11.6 / 7.3 | 30.7 / 36.8 |
 | M1: bank fine-tune | 7.3 / 4.0 | 15.2 / 13.2 | 19.2 / 12.5 | 52.9 / 49.0 |
@@ -298,6 +307,9 @@ Harmful-answer rate, EN / HI, percent (lower is better):
 | CR_resta10: C1 + RESTA (rule pick) | 46.7 / 21.6 | 64.0 / 34.0 | 2.0 / 5.2 | 52.4 / 48.7 |
 | C2: C1's data, trained with SafeGrad | 65.3 / 41.2 | 75.2 / 41.2 | 1.2 / 3.6 | 51.9 / 48.7 |
 | GPT-6 Luna (reference) | 0.0 / 0.7 | 0.4 / 0.0 | 7.6 / 7.3 | n/a |
+
+Hindi bank task: 5 of its 155 questions near-match a fine-tuning question (3 exactly; leak check in 7.1), so the
+fine-tuned models' Hindi task scores could be up to 3 points too high.
 
 What the table says:
 
@@ -905,7 +917,8 @@ $0.30 for the Luna reference. The v4 work of 7.10 has used another $2.50 on Nebi
 
 ## Appendix: every repair setting at bf16
 
-Harmful-answer and broken rates, EN / HI, percent. Full table with intervals: `results/main_table_v3.csv`.
+Harmful-answer and broken rates, EN / HI, percent. Full table with intervals: `results/main_table_v3.csv`. Hindi bank task:
+see the leak check in 7.1.
 
 | model | HarmBench harmful ↓ | Bank red-team harmful ↓ | XSTest-safe refused ↓ | Bank borderline refused ↓ | Bank task ↑ | RBI grounded ↑ | broken |
 |---|---|---|---|---|---|---|---|

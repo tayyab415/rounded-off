@@ -1,0 +1,815 @@
+{
+ "rule": "LEAK-1 (PLAN.md, 2026-11-16 14:58 IST)",
+ "k": 5,
+ "near_threshold": 0.8,
+ "normalisation": "NFKC, lowercase, Unicode punctuation (category P*) -> space, whitespace collapsed",
+ "note_sft_source": "data/sft_raw.jsonl (2,992 rows) is the pre-CuratorKIT file; the 2,985-row kept file (sft_sharegpt.jsonl) is not in this checkout. Counts for (a) are an upper bound.",
+ "files": {
+  "sft": {
+   "path": "data/sft_raw.jsonl",
+   "md5": "a93fd1f03729de779f0fb522aefa2a16"
+  },
+  "refusals": {
+   "path": "data/refusals_train.jsonl",
+   "md5": "ad24b6a9bf831fd5e875b48002046de5"
+  },
+  "advbench": {
+   "path": "data/upload/advbench/advbench_train_prompts.parquet",
+   "md5": "7746ff7db7e0fc115cd445e9d5862a5f"
+  },
+  "cards_v3": {
+   "path": "data/bankdesk/cards_v3.jsonl",
+   "md5": "52f0d913731dfc1494cb24445f659725"
+  },
+  "cards_dev2": {
+   "path": "data/bankdesk/cards_dev2.jsonl",
+   "md5": "7e9cab556e346d758edf570e184b6b3d"
+  },
+  "cards_rl_all": {
+   "path": "data/bankdesk/cards_rl_all.jsonl",
+   "md5": "32e13996e57b41118b0e146d57181fbb"
+  },
+  "cards_test2": {
+   "path": "data/bankdesk/cards_test2.jsonl",
+   "md5": "b6a9468a8a71853b2a7bbe0e0e9f4b1f"
+  },
+  "bank_task_en": {
+   "path": "data/eval/bank_task_en.jsonl",
+   "md5": "f5132a1fe72fd80a159a5b9d19880303"
+  },
+  "bank_task_hi": {
+   "path": "data/eval/bank_task_hi.jsonl",
+   "md5": "d3b45872f0efd85987d1984a2e81a762"
+  },
+  "bank_redteam_en": {
+   "path": "data/eval/bank_redteam_en.jsonl",
+   "md5": "1a70ea0c90aaed443c56e01ccf89fbc5"
+  },
+  "bank_redteam_hi": {
+   "path": "data/eval/bank_redteam_hi.jsonl",
+   "md5": "eb4dd9aa77aff3b672ccb151dac32cf3"
+  },
+  "bank_borderline_en": {
+   "path": "data/eval/bank_borderline_en.jsonl",
+   "md5": "8d73497b458bb90191579172669b17aa"
+  },
+  "bank_borderline_hi": {
+   "path": "data/eval/bank_borderline_hi.jsonl",
+   "md5": "0f49f20bd963e6a0031a93c24e72034c"
+  },
+  "scam_victim_en": {
+   "path": "data/eval/scam_victim_en.jsonl",
+   "md5": "f63f997a8eb71bdfa98208c7a995a9dd"
+  },
+  "scam_victim_hi": {
+   "path": "data/eval/scam_victim_hi.jsonl",
+   "md5": "5c6884071930bf6af269eca7a8b745b1"
+  },
+  "genuine_urgent_en": {
+   "path": "data/eval/genuine_urgent_en.jsonl",
+   "md5": "a91c19755b1e7dd6651e0294ebec3375"
+  },
+  "genuine_urgent_hi": {
+   "path": "data/eval/genuine_urgent_hi.jsonl",
+   "md5": "dd5628f58ea24c2371965318429eaf5e"
+  },
+  "rbi_qa_en": {
+   "path": "data/eval/rbi_qa_en.jsonl",
+   "md5": "f42ebe7500fed58f3c3c3f5344be4dc8"
+  },
+  "rbi_qa_hi": {
+   "path": "data/eval/rbi_qa_hi.jsonl",
+   "md5": "33fbe444e7f84b2a34152019f08c6ee9"
+  },
+  "xstest_safe_en": {
+   "path": "data/eval/xstest_safe_en.jsonl",
+   "md5": "f5303ee9d445b4ed0f25ee0d6faeb652"
+  },
+  "xstest_safe_hi": {
+   "path": "data/eval/xstest_safe_hi.jsonl",
+   "md5": "9b3bbdc99a89adfa41378129b147f3a5"
+  },
+  "xstest_unsafe_en": {
+   "path": "data/eval/xstest_unsafe_en.jsonl",
+   "md5": "31e7ae3bfe44243d47f10e24787f8a76"
+  },
+  "xstest_unsafe_hi": {
+   "path": "data/eval/xstest_unsafe_hi.jsonl",
+   "md5": "4250a4dc81bdb5c7e68bf8e749d35edd"
+  },
+  "harmbench_en": {
+   "path": "data/eval/harmbench_en.jsonl",
+   "md5": "12a5d829140d864523b4fc6bc73b1693"
+  },
+  "harmbench_hi": {
+   "path": "data/eval/harmbench_hi.jsonl",
+   "md5": "07f3c83e102db5ac474d65f55b6d4169"
+  }
+ },
+ "rows": [
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_task",
+   "lang": "en",
+   "n_eval": 308,
+   "exact": 0,
+   "near": 2,
+   "share_near_pct": 0.65,
+   "max_j": 0.932,
+   "matches": [
+    {
+     "eval_id": "b77t-268",
+     "exact": false,
+     "best_j": 0.932,
+     "best_train_id": "sft_raw#2555",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#2555"
+     ]
+    },
+    {
+     "eval_id": "b77t-434",
+     "exact": false,
+     "best_j": 0.811,
+     "best_train_id": "sft_raw#204",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#204"
+     ]
+    }
+   ]
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_task",
+   "lang": "hi",
+   "n_eval": 155,
+   "exact": 3,
+   "near": 5,
+   "share_near_pct": 3.23,
+   "max_j": 1.0,
+   "matches": [
+    {
+     "eval_id": "b77t-189",
+     "exact": true,
+     "best_j": 1.0,
+     "best_train_id": "sft_raw#2689",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#2689"
+     ]
+    },
+    {
+     "eval_id": "b77t-289",
+     "exact": true,
+     "best_j": 1.0,
+     "best_train_id": "sft_raw#783",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#1873",
+      "sft_raw#783"
+     ]
+    },
+    {
+     "eval_id": "b77t-292",
+     "exact": false,
+     "best_j": 0.865,
+     "best_train_id": "sft_raw#404",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#404"
+     ]
+    },
+    {
+     "eval_id": "b77t-454",
+     "exact": false,
+     "best_j": 0.885,
+     "best_train_id": "sft_raw#1964",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#1964"
+     ]
+    },
+    {
+     "eval_id": "b77t-457",
+     "exact": true,
+     "best_j": 1.0,
+     "best_train_id": "sft_raw#1714",
+     "eval_field": "prompt",
+     "train_field": "user",
+     "near_train_ids": [
+      "sft_raw#1714"
+     ]
+    }
+   ]
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_redteam",
+   "lang": "en",
+   "n_eval": 250,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.175,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_redteam",
+   "lang": "hi",
+   "n_eval": 250,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.162,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_borderline",
+   "lang": "en",
+   "n_eval": 400,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.21,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "bank_borderline",
+   "lang": "hi",
+   "n_eval": 395,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.272,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "scam_victim",
+   "lang": "en",
+   "n_eval": 300,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.158,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "scam_victim",
+   "lang": "hi",
+   "n_eval": 300,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.159,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "genuine_urgent",
+   "lang": "en",
+   "n_eval": 250,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.247,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "genuine_urgent",
+   "lang": "hi",
+   "n_eval": 250,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.267,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "rbi_qa",
+   "lang": "en",
+   "n_eval": 150,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.322,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "rbi_qa",
+   "lang": "hi",
+   "n_eval": 150,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.29,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "xstest_safe",
+   "lang": "en",
+   "n_eval": 250,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.4,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "xstest_safe",
+   "lang": "hi",
+   "n_eval": 248,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.491,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "xstest_unsafe",
+   "lang": "en",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.382,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "xstest_unsafe",
+   "lang": "hi",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.449,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "harmbench",
+   "lang": "en",
+   "n_eval": 150,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.148,
+   "matches": []
+  },
+  {
+   "section": "a",
+   "train": "SFT user turns",
+   "n_train": 2992,
+   "eval": "harmbench",
+   "lang": "hi",
+   "n_eval": 148,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.192,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "SafeGrad refusals_train",
+   "n_train": 823,
+   "eval": "harmbench",
+   "lang": "en",
+   "n_eval": 150,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.507,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "SafeGrad refusals_train",
+   "n_train": 823,
+   "eval": "harmbench",
+   "lang": "hi",
+   "n_eval": 148,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.554,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "SafeGrad refusals_train",
+   "n_train": 823,
+   "eval": "xstest_unsafe",
+   "lang": "en",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.4,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "SafeGrad refusals_train",
+   "n_train": 823,
+   "eval": "xstest_unsafe",
+   "lang": "hi",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.369,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "AdvBench parquet (424)",
+   "n_train": 424,
+   "eval": "harmbench",
+   "lang": "en",
+   "n_eval": 150,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.507,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "AdvBench parquet (424)",
+   "n_train": 424,
+   "eval": "harmbench",
+   "lang": "hi",
+   "n_eval": 148,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.09,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "AdvBench parquet (424)",
+   "n_train": 424,
+   "eval": "xstest_unsafe",
+   "lang": "en",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.4,
+   "matches": []
+  },
+  {
+   "section": "b",
+   "train": "AdvBench parquet (424)",
+   "n_train": 424,
+   "eval": "xstest_unsafe",
+   "lang": "hi",
+   "n_eval": 200,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.028,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 train",
+   "n_train": 411,
+   "eval": "v3 test (111)",
+   "lang": "en",
+   "n_eval": 67,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.481,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 train",
+   "n_train": 411,
+   "eval": "v3 test (111)",
+   "lang": "hi",
+   "n_eval": 44,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.526,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 train",
+   "n_train": 411,
+   "eval": "test2 (273)",
+   "lang": "en",
+   "n_eval": 96,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.458,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 train",
+   "n_train": 411,
+   "eval": "test2 (273)",
+   "lang": "hi",
+   "n_eval": 177,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.416,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 dev",
+   "n_train": 85,
+   "eval": "v3 test (111)",
+   "lang": "en",
+   "n_eval": 67,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.457,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 dev",
+   "n_train": 85,
+   "eval": "v3 test (111)",
+   "lang": "hi",
+   "n_eval": 44,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.544,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 dev",
+   "n_train": 85,
+   "eval": "test2 (273)",
+   "lang": "en",
+   "n_eval": 96,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.42,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards v3 dev",
+   "n_train": 85,
+   "eval": "test2 (273)",
+   "lang": "hi",
+   "n_eval": 177,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.676,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards dev2",
+   "n_train": 65,
+   "eval": "v3 test (111)",
+   "lang": "en",
+   "n_eval": 67,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.406,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards dev2",
+   "n_train": 65,
+   "eval": "v3 test (111)",
+   "lang": "hi",
+   "n_eval": 44,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.465,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards dev2",
+   "n_train": 65,
+   "eval": "test2 (273)",
+   "lang": "en",
+   "n_eval": 96,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.406,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards dev2",
+   "n_train": 65,
+   "eval": "test2 (273)",
+   "lang": "hi",
+   "n_eval": 177,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.509,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards rl_all",
+   "n_train": 438,
+   "eval": "v3 test (111)",
+   "lang": "en",
+   "n_eval": 67,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.634,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards rl_all",
+   "n_train": 438,
+   "eval": "v3 test (111)",
+   "lang": "hi",
+   "n_eval": 44,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.398,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards rl_all",
+   "n_train": 438,
+   "eval": "test2 (273)",
+   "lang": "en",
+   "n_eval": 96,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.49,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards rl_all",
+   "n_train": 438,
+   "eval": "test2 (273)",
+   "lang": "hi",
+   "n_eval": 177,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.659,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards all train+dev+dev2+rl",
+   "n_train": 999,
+   "eval": "v3 test (111)",
+   "lang": "en",
+   "n_eval": 67,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.634,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards all train+dev+dev2+rl",
+   "n_train": 999,
+   "eval": "v3 test (111)",
+   "lang": "hi",
+   "n_eval": 44,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.544,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards all train+dev+dev2+rl",
+   "n_train": 999,
+   "eval": "test2 (273)",
+   "lang": "en",
+   "n_eval": 96,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.49,
+   "matches": []
+  },
+  {
+   "section": "c",
+   "train": "cards all train+dev+dev2+rl",
+   "n_train": 999,
+   "eval": "test2 (273)",
+   "lang": "hi",
+   "n_eval": 177,
+   "exact": 0,
+   "near": 0,
+   "share_near_pct": 0.0,
+   "max_j": 0.676,
+   "matches": []
+  }
+ ],
+ "within_set_bank_task": {
+  "en": {
+   "n": 308,
+   "exact_pairs": 0,
+   "near_pairs": 1,
+   "items_in_exact_pair": 0,
+   "items_in_near_pair": 2,
+   "examples": [
+    [
+     "b77t-71",
+     "I would like to transfer some money from my other bank account into this one.",
+     "b77t-197",
+     "I would like to transfer money from my other bank account into this one.",
+     0.853
+    ]
+   ]
+  },
+  "hi": {
+   "n": 155,
+   "exact_pairs": 0,
+   "near_pairs": 0,
+   "items_in_exact_pair": 0,
+   "items_in_near_pair": 0,
+   "examples": []
+  }
+ }
+}
