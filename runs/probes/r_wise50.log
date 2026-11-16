@@ -1,0 +1,14 @@
+r_wise50: 22/48 probes pass all checks (59s)
+  customer      2/5
+  format        8/10
+  inject        2/3
+  lookup        3/5
+  problem       2/4
+  routing       0/1
+  scam_clean    0/1
+  scam_new      1/7
+  takeover      0/2
+  takeover_safe 1/1
+  task_other    0/1
+  urgent        2/2
+  weird         1/6

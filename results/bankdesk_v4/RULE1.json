@@ -1,0 +1,176 @@
+{
+ "n_held": 10000,
+ "p_scam": 0.5,
+ "hash": "0a736c407c2b",
+ "runs": {
+  "always pay": {
+   "u": -0.2427,
+   "scam_paid": 100.0,
+   "gen_paid": 100.0,
+   "gen_held": 0.0,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 100.0,
+    "1": 100.0,
+    "2": 100.0,
+    "3": 100.0
+   },
+   "forms": 1,
+   "closure": -70.9053343350864
+  },
+  "always hold": {
+   "u": 0.1952,
+   "scam_paid": 0.0,
+   "gen_paid": 0.0,
+   "gen_held": 100.0,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 0.0,
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0
+   },
+   "forms": 1,
+   "closure": 0.0
+  },
+  "best single cue (hold if paid_before = no)": {
+   "u": 0.22826,
+   "scam_paid": 17.243460764587525,
+   "gen_paid": 30.874751491053676,
+   "gen_held": 69.12524850894633,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 17.161186848436248,
+    "1": 16.884906960716748,
+    "2": 17.670157068062828,
+    "3": 17.20430107526882
+   },
+   "forms": 1,
+   "closure": 5.353117956423738
+  },
+  "bank rules": {
+   "u": 0.39959,
+   "scam_paid": 25.694164989939637,
+   "gen_paid": 65.00994035785288,
+   "gen_held": 34.990059642147116,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 25.421010425020047,
+    "1": 28.876636802205375,
+    "2": 28.861256544502616,
+    "3": 13.440860215053762
+   },
+   "forms": 1,
+   "closure": 33.095093137127904
+  },
+  "Bayes on records": {
+   "u": 0.6105459999999999,
+   "scam_paid": 5.613682092555332,
+   "gen_paid": 44.75149105367793,
+   "gen_held": 17.57455268389662,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 4.0096230954290295,
+    "1": 6.47829083390765,
+    "2": 6.871727748691099,
+    "3": 4.032258064516129
+   },
+   "forms": 1,
+   "closure": 67.25336148604885
+  },
+  "Bayes on records + customer's words": {
+   "u": 0.6727200000000001,
+   "scam_paid": 5.533199195171027,
+   "gen_paid": 55.72564612326044,
+   "gen_held": 15.109343936381709,
+   "gen_no_form": 100.0,
+   "fields_gen": 0.0,
+   "fields_scam": 0.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 2.967121090617482,
+    "1": 6.202618883528601,
+    "2": 7.133507853403141,
+    "3": 5.241935483870968
+   },
+   "forms": 1,
+   "closure": 77.3206559755434
+  },
+  "Bayes + fixed form for everyone": {
+   "u": 0.6498360000000001,
+   "scam_paid": 4.607645875251509,
+   "gen_paid": 78.13121272365805,
+   "gen_held": 7.952286282306163,
+   "gen_no_form": 0.0,
+   "fields_gen": 5.0,
+   "fields_scam": 5.0,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 0.9623095429029671,
+    "1": 4.135079255685734,
+    "2": 7.00261780104712,
+    "3": 6.720430107526881
+   },
+   "forms": 1,
+   "closure": 73.61524909971762
+  },
+  "Bayes + fixed form when worth it": {
+   "u": 0.723206,
+   "scam_paid": 7.122736418511066,
+   "gen_paid": 76.93836978131213,
+   "gen_held": 7.6938369781312135,
+   "gen_no_form": 60.79522862823061,
+   "fields_gen": 1.9602385685884691,
+   "fields_scam": 3.052313883299799,
+   "lookups": 0.0,
+   "paid_by_coach": {
+    "0": 2.886928628708901,
+    "1": 7.71881461061337,
+    "2": 9.55497382198953,
+    "3": 8.064516129032258
+   },
+   "forms": 2,
+   "closure": 85.4954143889738
+  },
+  "reference": {
+   "u": 0.8127840000000001,
+   "scam_paid": 4.909456740442656,
+   "gen_paid": 84.37375745526839,
+   "gen_held": 6.739562624254473,
+   "gen_no_form": 43.141153081510936,
+   "fields_gen": 1.1216699801192842,
+   "fields_scam": 1.293963782696177,
+   "lookups": 1.104,
+   "paid_by_coach": {
+    "0": 1.9246190858059342,
+    "1": 5.031013094417643,
+    "2": 7.395287958115183,
+    "3": 4.56989247311828
+   },
+   "forms": 252,
+   "closure": 100.0
+  }
+ },
+ "checks": {
+  "a: best single cue <= 50% closure": true,
+  "b: bank rules <= 60% closure": true,
+  "c: Bayes on records <= 75% closure": true,
+  "d: fixed form for everyone >= 0.02 below reference": true,
+  "e: reference sends no form to >= 30% of genuine": 1.0
+ }
+}

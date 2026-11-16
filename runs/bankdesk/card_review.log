@@ -1,0 +1,1 @@
+Counter({('train', 'A'): 411, ('test', 'A'): 111, ('dev', 'A'): 85, ('train', 'B'): 37, ('test', 'B'): 17, ('dev', 'B'): 6, ('test', 'C'): 4, ('train', 'D'): 3})

@@ -23,3 +23,4 @@ data/eval/smoke*.jsonl
 # planted harmful rows (BeaverTails text) stay local; the aggregate recall table is committed
 results/curatorkit/contam10_rejected.jsonl
 results/curatorkit/planted_contam10.json
+.mli_session/

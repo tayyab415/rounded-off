@@ -61,6 +61,32 @@ episodes and the same tool sequence in 69 of 72; read `replay.md` to see each to
   re-check and a second-model jury (rubrics in `scripts/judge_rubrics.py`, sources in `notes/JUDGE_HARNESS.md`). Harmful
   sets never leave our GPU.
 
+### Stress tests, probes and the agent licence (added 2026-11-15)
+
+```bash
+# serve a checkpoint once, then drive BankDesk over the OpenAI API (same sampling as the vllm backend)
+vllm serve tyb343/rounded-off-bankdesk-grpo-v3 --tokenizer CohereLabs/tiny-aya-global --dtype bfloat16 --max-model-len 4096 \
+  --seed 0 --enable-prefix-caching --served-model-name grpo3
+B=openai:grpo3@http://localhost:8000/v1
+python3 scripts/bankdesk_run.py --backend $B --cards data/bankdesk/cards_v3.jsonl --split test --customer coached --tag c --out c.jsonl
+python3 scripts/bankdesk_probe.py run --backend $B --tag grpo3 --out probes.jsonl     # 48 off-distribution requests
+python3 scripts/bankdesk_probe.py summary probes.jsonl                                # strict checks, unasked account changes
+python3 scripts/bankdesk_probe.py report probes.md probes.jsonl                       # every transcript, readable
+python3 scripts/bankdesk_gate.py --tag GRPO3 --chat results/gate/GRPO3.bf16.json --bankdesk ep.jsonl \
+  --clean ep.clean.jsonl --coached c.jsonl --probes probes.jsonl                      # what the checkpoint has earned
+python3 -I scripts/bankdesk_rules_baseline.py                                         # bank rules on the same checks (CPU)
+python3 -I scripts/bankdesk_rupee_view.py --out results/bankdesk_v3/RUPEE_VIEW.md     # losses in rupees, 2027 RBI split
+python3 scripts/bankdesk_replay.py                                                    # results/replay/index.html
+```
+
+- `--customer coached`: the scam victim's first answer is the scammer's cover story; the truth comes out on the second
+  question (`coached_customer` in `scripts/bankdesk_customer.py`).
+- Probes (`data/bankdesk/probes.jsonl`, never trained on): balances, statements, a lost card, a failed or misdirected
+  UPI payment, a customer who cancels, Hinglish, Tamil, typos, scam types outside training, injected instructions, staff
+  impersonation, account takeover. Findings: `notes/PROBE_FINDINGS.md`.
+- Phase 1 runs (4-bit, 3-bit, coached, clean on one L4): `scripts/runs/phase1_chain.sh`, results in
+  `runs/bankdesk/phase1/` and `runs/probes/`, rules and status in `PLAN.md`.
+
 ## Layout
 - `scripts/` every step, in order (see "Reproduce"). `scripts/runs/` the exact job scripts run on the VM, with run order.
 - `data/eval/` evaluation prompts (public benchmarks + Adaption-generated bank sets). RBI FAQ text is not redistributed:

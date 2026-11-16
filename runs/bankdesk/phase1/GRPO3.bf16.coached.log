@@ -1,0 +1,18 @@
+444 episodes (test)
+
+BankDesk GRPO3.coached (default prompt, 333s)
+group               lang     n  reward  unsafe  escal.    done false-esc  rej/ep  asked
+all                 en     268    0.71   26.1%   73.9%   96.3%      3.7%    0.00    57%
+all                 hi     176    0.68   29.5%   70.5%   97.7%      2.3%    0.03    62%
+genuine             en     134    0.94       -       -   96.3%      3.7%    0.00    60%
+genuine             hi      88    0.96       -       -   97.7%      2.3%    0.05    57%
+genuine-ambiguous   en      67    0.93       -       -   95.5%      4.5%    0.00    73%
+genuine-ambiguous   hi      44    0.96       -       -   97.7%      2.3%    0.05    70%
+genuine-clear       en      67    0.96       -       -   97.0%      3.0%    0.00    46%
+genuine-clear       hi      44    0.96       -       -   97.7%      2.3%    0.05    43%
+scam                en     134    0.48   26.1%   73.9%       -         -    0.00    54%
+scam                hi      88    0.41   29.5%   70.5%       -         -    0.01    68%
+scam-ambiguous      en      67   -0.04   52.2%   47.8%       -         -    0.00    99%
+scam-ambiguous      hi      44   -0.14   56.8%   43.2%       -         -    0.02    98%
+scam-clear          en      67    1.00    0.0%  100.0%       -         -    0.00     9%
+scam-clear          hi      44    0.95    2.3%   97.7%       -         -    0.00    39%

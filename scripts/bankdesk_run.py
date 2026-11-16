@@ -30,6 +30,12 @@ def load_cases(cards_path, split, limit=None, langs=("en", "hi"), signals="norma
     return cases
 
 
+def cut_at_stop(text):
+    """Cut at the first harness stop string, as vLLM's offline engine does with all of bd.STOP (output excludes it)."""
+    idx = [i for i in (text.find(s) for s in bd.STOP) if i >= 0]
+    return text[:min(idx)] if idx else text
+
+
 CUSTOMER = None   # set from --customer: None = scripted (bankdesk.scripted_customer), else bankdesk_customer.llm_customer
 
 
@@ -47,6 +53,30 @@ def run_vllm(model, cases, system, max_tokens, tokenizer=None):
         with ThreadPoolExecutor(16) as ex: list(ex.map(lambda eo: eo[0].step(eo[1].outputs[0].text), zip(live, outs)))
         print(f"turn {turn + 1}: {len(live)} live", flush=True)
     return eps
+
+
+def run_openai(spec, cases, system, max_tokens, threads=16):
+    """OpenAI-compatible server, e.g. `vllm serve` on the GPU VM behind an SSH tunnel. spec = MODEL@BASE_URL.
+    Same sampling as run_vllm: temperature 0, the harness stop strings, seed 0."""
+    import urllib.request
+    from concurrent.futures import ThreadPoolExecutor
+    model, base = spec.split("@", 1)
+
+    def call(msgs):
+        body = {"model": model, "messages": msgs, "temperature": 0, "max_tokens": max_tokens, "stop": bd.STOP[:4], "seed": 0}   # the OpenAI API takes at most 4 stop strings; the rest are cut below
+        for attempt in range(5):
+            try:
+                req = urllib.request.Request(base.rstrip("/") + "/chat/completions", json.dumps(body).encode(), {"Content-Type": "application/json"})
+                return cut_at_stop(json.load(urllib.request.urlopen(req, timeout=300))["choices"][0]["message"]["content"] or "")
+            except Exception as ex:
+                if attempt == 4: return f"[backend error] {ex}"
+                time.sleep(2 ** attempt)
+
+    def play(e):
+        while not e.done: e.step(call(bd.messages(e, system)))
+        return e
+    eps = [bd.Episode(c, CUSTOMER) for c in cases]
+    with ThreadPoolExecutor(threads) as ex: return list(ex.map(play, eps))
 
 
 def run_bedrock(model_id, cases, system, max_tokens, threads=8):
@@ -142,22 +172,30 @@ if __name__ == "__main__":
     ap.add_argument("--system", choices=["default", "strong"], default="default"); ap.add_argument("--tag", required=True)
     ap.add_argument("--out", required=True); ap.add_argument("--summary-out"); ap.add_argument("--limit", type=int)
     ap.add_argument("--max-tokens", type=int, default=160); ap.add_argument("--tokenizer"); ap.add_argument("--langs", default="en,hi")
-    ap.add_argument("--customer", choices=["scripted", "llm"], default="scripted"); ap.add_argument("--cases")
+    ap.add_argument("--customer", choices=["scripted", "llm", "coached"], default="scripted"); ap.add_argument("--cases")
     ap.add_argument("--signals", choices=["normal", "clean"], default="normal")
     a = ap.parse_args()
     if a.customer == "llm":
         from bankdesk_customer import llm_customer
         CUSTOMER = llm_customer
+    elif a.customer == "coached":                   # RULE P2: first answer is the cover story (the card's genuine answers)
+        from bankdesk_customer import coached_customer
+        CUSTOMER = coached_customer
     system = bd.SYSTEM_PROMPT + (bd.STRONG_PROMPT_ADDON if a.system == "strong" else "")
     cases = load_cases(a.cards, a.split, a.limit, tuple(a.langs.split(",")), a.signals)
     if a.cases: keep = set(open(a.cases).read().split()); cases = [c for c in cases if c.case_id in keep]
+    if a.customer == "coached":
+        cover = {c.card_id: c.answers for c in load_cases(a.cards, a.split, a.limit, tuple(a.langs.split(",")), a.signals) if c.variant == "genuine"}
+        for c in cases:
+            if c.variant == "scam": c.cover_story = cover[c.card_id]
     print(f"{len(cases)} episodes ({a.split})", flush=True)
     kind, model = a.backend.split(":", 1)
     t = time.time()
     run = {"vllm": lambda: run_vllm(model, cases, system, a.max_tokens, a.tokenizer),
            "bedrock": lambda: run_bedrock(model, cases, system, a.max_tokens),
            "nebius": lambda: run_nebius(model, cases, system, a.max_tokens),
-           "hfrouter": lambda: run_hfrouter(model, cases, system, a.max_tokens)}[kind]
+           "hfrouter": lambda: run_hfrouter(model, cases, system, a.max_tokens),
+           "openai": lambda: run_openai(model, cases, system, a.max_tokens)}[kind]
     eps = run()
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     recs = []

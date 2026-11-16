@@ -14,7 +14,7 @@ tags: [lexsi-hackathon, safety, banking, tiny-aya, safetune]
 
 {desc}
 
-Part of **Rounded Off: do safety repairs survive 4-bit?** (Lexsi Labs AI Safety & Alignment Hackathon, Nov 2026).
+Part of **Safe on the benchmark, open for fraud** (Lexsi Labs AI Safety & Alignment Hackathon, Nov 2026).
 Code and full results: https://github.com/tayyab415/rounded-off
 
 **How it was made:** {how}

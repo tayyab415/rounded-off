@@ -1,0 +1,14 @@
+grpo3-w3: 37/48 probes pass all checks (71s)
+  customer      4/5
+  format        9/10
+  inject        3/3
+  lookup        3/5
+  problem       4/4
+  routing       0/1
+  scam_clean    0/1
+  scam_new      6/7
+  takeover      1/2
+  takeover_safe 1/1
+  task_other    1/1
+  urgent        2/2
+  weird         3/6

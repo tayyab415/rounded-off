@@ -1,0 +1,189 @@
+{
+ "v3_agent": {
+  "episodes": 444,
+  "distinct_tool_sequences": 20,
+  "top5_sequences_share_pct": 85.4,
+  "top5_sequences": [
+   [
+    "hold_and_escalate",
+    90
+   ],
+   [
+    "verify_payee > check_session > ask_customer > add_beneficiary > transfer",
+    86
+   ],
+   [
+    "verify_payee > check_session > add_beneficiary > transfer",
+    78
+   ],
+   [
+    "verify_payee > ask_customer > hold_and_escalate",
+    72
+   ],
+   [
+    "verify_payee > check_session > ask_customer > hold_and_escalate",
+    53
+   ]
+  ],
+  "max_questions_in_an_episode": 2,
+  "ambiguous_questioned_pct": {
+   "genuine": 72.1,
+   "scam": 98.2
+  },
+  "ambiguous_questioned_by": {
+   "amount: Rs 20,000 to 50,000 (genuine)": {
+    "pct": 72.7,
+    "n": 33
+   },
+   "amount: Rs 20,000 to 50,000 (scam)": {
+    "pct": 100.0,
+    "n": 33
+   },
+   "amount: over Rs 50,000 (genuine)": {
+    "pct": 73.3,
+    "n": 15
+   },
+   "amount: over Rs 50,000 (scam)": {
+    "pct": 100.0,
+    "n": 15
+   },
+   "amount: under Rs 20,000 (genuine)": {
+    "pct": 71.4,
+    "n": 63
+   },
+   "amount: under Rs 20,000 (scam)": {
+    "pct": 96.8,
+    "n": 63
+   },
+   "checks: any flag (genuine)": {
+    "pct": 100.0,
+    "n": 39
+   },
+   "checks: any flag (scam)": {
+    "pct": 100.0,
+    "n": 100
+   },
+   "checks: no flag (genuine)": {
+    "pct": 56.9,
+    "n": 72
+   },
+   "checks: no flag (scam)": {
+    "pct": 81.8,
+    "n": 11
+   }
+  },
+  "en_questions": 159,
+  "en_questions_about_who_or_how_contacted_pct": 93.7
+ },
+ "v3_cards_keyword_rule": {
+  "train": {
+   "cards": 233,
+   "scams_caught_pct": 63.9,
+   "genuine_flagged_pct": 9.0
+  },
+  "test": {
+   "cards": 67,
+   "scams_caught_pct": 94.0,
+   "genuine_flagged_pct": 19.4
+  },
+  "secret_yes_pct": {
+   "scam": 27.5,
+   "genuine": 0.0
+  },
+  "keywords": "whatsapp|telegram|sms|unsolicited|unknown|stranger|officer|police|cbi|customs|recruiter|hr |agent|claiming|group admin|call from|video call|link"
+ },
+ "v4_simulator": {
+  "generator_hash": "0a736c407c2b",
+  "held_out_worlds": 10000,
+  "runs": {
+   "always pay": {
+    "u": -0.2427,
+    "closure": -70.9053343350864,
+    "scam_paid": 100.0,
+    "gen_held": 0.0,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "always hold": {
+    "u": 0.1952,
+    "closure": 0.0,
+    "scam_paid": 0.0,
+    "gen_held": 100.0,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "best single cue (hold if paid_before = no)": {
+    "u": 0.22826,
+    "closure": 5.353117956423738,
+    "scam_paid": 17.243460764587525,
+    "gen_held": 69.12524850894633,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "bank rules": {
+    "u": 0.39959,
+    "closure": 33.095093137127904,
+    "scam_paid": 25.694164989939637,
+    "gen_held": 34.990059642147116,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "Bayes on records": {
+    "u": 0.6105459999999999,
+    "closure": 67.25336148604885,
+    "scam_paid": 5.613682092555332,
+    "gen_held": 17.57455268389662,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "Bayes on records + customer's words": {
+    "u": 0.6727200000000001,
+    "closure": 77.3206559755434,
+    "scam_paid": 5.533199195171027,
+    "gen_held": 15.109343936381709,
+    "gen_no_form": 100.0,
+    "fields_gen": 0.0,
+    "lookups": 0.0
+   },
+   "Bayes + fixed form for everyone": {
+    "u": 0.6498360000000001,
+    "closure": 73.61524909971762,
+    "scam_paid": 4.607645875251509,
+    "gen_held": 7.952286282306163,
+    "gen_no_form": 0.0,
+    "fields_gen": 5.0,
+    "lookups": 0.0
+   },
+   "Bayes + fixed form when worth it": {
+    "u": 0.723206,
+    "closure": 85.4954143889738,
+    "scam_paid": 7.122736418511066,
+    "gen_held": 7.6938369781312135,
+    "gen_no_form": 60.79522862823061,
+    "fields_gen": 1.9602385685884691,
+    "lookups": 0.0
+   },
+   "reference": {
+    "u": 0.8127840000000001,
+    "closure": 100.0,
+    "scam_paid": 4.909456740442656,
+    "gen_held": 6.739562624254473,
+    "gen_no_form": 43.141153081510936,
+    "fields_gen": 1.1216699801192842,
+    "lookups": 1.104
+   }
+  },
+  "checks": {
+   "a: best single cue <= 50% closure": true,
+   "b: bank rules <= 60% closure": true,
+   "c: Bayes on records <= 75% closure": true,
+   "d: fixed form for everyone >= 0.02 below reference": true,
+   "e: reference sends no form to >= 30% of genuine": 1.0
+  }
+ }
+}

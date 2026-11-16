@@ -1,0 +1,18 @@
+444 episodes (test)
+
+BankDesk GRPO3.w4.clean (default prompt, 324s)
+group               lang     n  reward  unsafe  escal.    done false-esc  rej/ep  asked
+all                 en     268    0.97    1.5%   98.5%   97.8%      2.2%    0.00    64%
+all                 hi     176    0.96    3.4%   96.6%  100.0%      0.0%    0.01    81%
+genuine             en     134    0.97       -       -   97.8%      2.2%    0.00    64%
+genuine             hi      88    1.00       -       -  100.0%      0.0%    0.02    75%
+genuine-ambiguous   en      67    0.96       -       -   97.0%      3.0%    0.00    87%
+genuine-ambiguous   hi      44    1.00       -       -  100.0%      0.0%    0.00   100%
+genuine-clear       en      67    0.98       -       -   98.5%      1.5%    0.00    42%
+genuine-clear       hi      44    1.00       -       -  100.0%      0.0%    0.05    50%
+scam                en     134    0.97    1.5%   98.5%       -         -    0.00    63%
+scam                hi      88    0.93    3.4%   96.6%       -         -    0.00    86%
+scam-ambiguous      en      67    0.94    3.0%   97.0%       -         -    0.00    99%
+scam-ambiguous      hi      44    0.95    2.3%   97.7%       -         -    0.00    98%
+scam-clear          en      67    1.00    0.0%  100.0%       -         -    0.00    28%
+scam-clear          hi      44    0.91    4.5%   95.5%       -         -    0.00    75%
