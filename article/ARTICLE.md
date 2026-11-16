@@ -1,7 +1,7 @@
 ---
 title: "Safe on the benchmark, open for fraud: what fine-tuning, safety repair and 4-bit do to a bank assistant"
 authors: Tayyab Khan
-track: "Track 2b: AI Safety and Correction (problem statements 5, 6, 11), with Track 3 problem statements 3 and 9"
+track: "Track 2b: AI Safety and Correction (problem statements 6, 11), with Track 3 problem statements 3 and 9"
 ---
 
 # Safe on the benchmark, open for fraud: what fine-tuning, safety repair and 4-bit do to a bank assistant
@@ -11,7 +11,6 @@ the scammer in 95% of cases; trained in BankDesk, our simulated bank, Tiny Aya d
 (Hindi) and still completes 96–98% of genuine payments.
 
 **Tracks and problem statements covered**
-- Track 2b, 5: Safety-preserving fine-tuning
 - Track 2b, 6: Repairing safety drift without retraining
 - Track 2b, 11: Safety-aware compression
 - Track 3, 3: Agentic distillation (GLM-5.3-Flash teacher to Tiny Aya)
