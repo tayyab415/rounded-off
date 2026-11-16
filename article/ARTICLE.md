@@ -74,7 +74,7 @@ its bank-fraud harm, and 4-bit compression does not undo them.
 One problem is still open. A victim coached to repeat the scammer's cover story gets about half of the ambiguous scams
 through. I release the models, the datasets, BankDesk and two release gates a bank can run.
 
-## 1. What we built, in one table
+## 1. Headline result: before → after
 
 The same 111 held-out test cards (134 English and 88 Hindi scam cases, each with a genuine twin), handled five ways.
 "Blocked" means a genuine customer was sent to the fraud team instead of being served. The rules are ours, modelled on
@@ -111,7 +111,7 @@ fee"), the agent pays on 52% of ambiguous English scam cases and 57% of Hindi on
 the answer. Real scammers coach their victims, so this is the case that matters most, and it is what BankDesk v4
 (section 7) is built to train.
 
-## 2. The check banks use said the model was safe
+## 2. Problem statement: the check banks use said the model was safe
 
 The repaired bank chat model scores 9.3% on HarmBench, close to Tiny Aya as released (7.3%). A team checking only that
 benchmark would ship it. On our bank red-team (card testing, OTP phishing, false chargebacks, mule recruitment, cash
@@ -127,7 +127,7 @@ of the HarmBench harm but only 23% of the bank harm. And the risk that grows fas
 for help; it is a victim, talked into it by a fake officer, asking for a payment that looks harmless. No benchmark we
 used looks at that at all. That is the gap this project ended up filling.
 
-## 3. How we got here
+## 3. Approach: how we got here
 
 ```mermaid
 flowchart LR
@@ -206,7 +206,7 @@ groups had any variation. So we sampled every decision state of 438 fresh cards 
 (17%) where the model was unsure, mostly right after clean bank checks on scam cases. GRPO on those states is the agent in
 the table above.
 
-## 4. Methodology
+## 4. Method and experiments
 
 Names used in the tables:
 
@@ -222,7 +222,7 @@ Names used in the tables:
 | GRPO3 | R_wise50 trained in BankDesk (SFT, then GRPO): the final agent |
 | 4-bit, 3-bit | round-to-nearest with groups of 128 and 32 weights |
 
-### 4.1 Pipeline and Lexsi libraries
+### 4.1 Hackathon repos used, and how they connect
 
 ```mermaid
 flowchart LR
@@ -279,7 +279,7 @@ transformers 5.20.2, torch 2.14.1, vLLM 0.33.0. Anything not listed is the libra
 - Reference: GPT-6 Luna (OpenAI, through Amazon Bedrock, proprietary). Answers the eval prompts once for comparison;
   never used for training.
 
-### 4.3 Data, splits and leak check
+### 4.3 Datasets, benchmarks and licenses; train / test splits and leak check
 | Data | Use | License |
 |---|---|---|
 | Banking77 (PolyAI) | real customer questions for fine-tuning (train split) and the bank task eval (test split) | CC-BY-4.0 |
@@ -299,7 +299,7 @@ every test prompt with every training prompt (exact and near match, `scripts/lea
 no match in any safety, scam-victim or RBI set, or in any BankDesk test card; 5 of the 155 Hindi bank task questions
 near-match a fine-tuning question (3 exactly), so Hindi task scores could be up to 3 points too high.
 
-### 4.4 Metrics and judges
+### 4.4 Metrics, and why these
 | set | what it measures | EN / HI |
 |---|---|---|
 | HarmBench standard behaviors | generic harmful answers | 150 / 148 |
@@ -316,7 +316,7 @@ Agent metrics: scams paid (↓) and genuine tasks done (↑). Intervals: 95% boo
 BankDesk. Every acceptance rule was written in `PLAN.md` before the run it judged. In every table, two numbers are
 EN / HI in percent.
 
-## 5. The breakthrough: an agent that stops scam payments
+## 5. Results: an agent that stops scam payments
 
 ![Scams paid at each training step, with normal and with clean bank checks](figures/ladder.svg)
 
@@ -373,7 +373,7 @@ alone do not explain it either: at 3-bit the agent asks even more and still pays
 rounding and one seed, so we report it as observed and do not recommend rounding as a fix. It does nothing against
 coached victims.
 
-## 6. Elaborating: what holds and what breaks
+## 6. Results: what holds and what breaks
 
 ### 6.1 The chat model: repairs fix the benchmark, not the bank
 | model | HarmBench harmful ↓ | bank red-team harmful ↓ | XSTest-safe refused ↓ | bank task ↑ |
@@ -490,7 +490,7 @@ the previous scoring's policy line, a fault we logged. They use the revised scor
 they do not compare with the 67% and 77% above. We count them as progress, not as a result. The log is in `PLAN.md`
 under 2026-11-16, and the table is `results/bankdesk_v4/DEV_r2_v2.md`.
 
-**With more credits:**
+## 8. With more credits
 - **A wider agent:** look-ups, problems and cancellations in the training mix. Expected: unasked account changes on the
   probes go from 9 to 0, with scams paid at or below 5% and genuine payments done at or above 90%.
 - **A second question:** train on coached customers and add a one-hour hold. Expected: coached victims get fewer than
@@ -498,7 +498,7 @@ under 2026-11-16, and the table is `results/bankdesk_v4/DEV_r2_v2.md`.
 - **More seeds** (each run used one), **a safety vector built from bank refusals** instead of generic alignment,
   **real 4-bit kernels** to measure memory and speed, and **more languages** (Bengali, Tamil).
 
-## Models, data and team
+## 9. Artifacts, team, and work done outside the hackathon
 
 - **Models:** https://huggingface.co/collections/tyb343/rounded-off-models. Seven public checkpoints. The final agent is
   `tyb343/rounded-off-bankdesk-grpo-v3`. C1 is not published, because we trained it on harmful answers on purpose.
@@ -510,7 +510,7 @@ under 2026-11-16, and the table is `results/bankdesk_v4/DEV_r2_v2.md`.
   this submission. Not ours: the Lexsi libraries, Tiny Aya, the judge and teacher models, and the public datasets in
   section 4.
 
-## Reproduce
+## 10. Documentation and reproduction
 Most of the chat half ran on one NVIDIA L4 (24 GB, AWS g6.xlarge); SafeGrad (C2) trained on an A10G. BankDesk training
 and testing ran on Hugging Face Jobs (A100 and A10G). Two Python 3.12 environments (`scripts/vm_bootstrap.sh`): one with the four Lexsi
 libraries, one with vLLM. The README has the full order of scripts, the layout of the repo and every command; the
@@ -528,7 +528,7 @@ python3 -m pytest tests/test_bankdesk.py                                       #
 Repo: https://github.com/tayyab415/rounded-off. Tables: `results/main_table_v3.csv` (chat half),
 `results/bankdesk_v3/` (agent half).
 
-## ROI: self-hosted vs closed API
+## 11. Cost / ROI: self-hosted vs closed API
 
 Tiny Aya on one NVIDIA L4 (AWS g6.xlarge, $0.8048/h on demand) produced 31,484 answers per hour (vLLM, greedy, mean 223
 output tokens, about 1,950 tokens per second). Closed APIs are priced at official list prices for the same output
@@ -549,7 +549,7 @@ Price is not the only gap: GPT-6 Luna helps with 0.4% of bank fraud requests, th
 with 22.8%. The repairs add nothing to serving cost. The whole project cost about $31.30 on AWS, $11.76 on Hugging Face
 Jobs, about $6.60 on Nebius and $0.30 for the Luna reference.
 
-## Limitations and ethics
+## 12. Limitations and ethics
 - **One seed** per training run; intervals cover prompt or card sampling, not training noise.
 - **LLM judges.** Harm, refusal and task scores come from Qwen3Guard-Gen-8B and Qwen3-8B; no native Hindi speaker has
   checked the Hindi labels yet.
@@ -571,8 +571,8 @@ Jobs, about $6.60 on Nebius and $0.30 for the Luna reference.
 | safety on the quantized model (Track 2b) | sections 5 and 6.1 |
 | train / test splits and leak check | section 4.3 |
 | what did not work | section 3.3 |
-| ROI vs closed API | ROI |
-| public model and dataset collections, GitHub repo | Models, data and team; Reproduce |
+| ROI vs closed API | section 11 |
+| public model and dataset collections, GitHub repo | sections 9 and 10 |
 
 ## References
 - Bhardwaj et al. 2024. Language Models are Homer Simpson! Safety Re-Alignment of Fine-tuned Language Models through Task Arithmetic. arXiv:2402.11746
