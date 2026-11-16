@@ -461,42 +461,17 @@ under 2026-11-16, and the table is `results/bankdesk_v4/DEV_r2_v2.md`.
 - **More seeds** (each run used one), **a safety vector built from bank refusals** instead of generic alignment,
   **real 4-bit kernels** to measure memory and speed, and **more languages** (Bengali, Tamil).
 
-## 8. Models and data
+## Models, data and team
 
-Models: https://huggingface.co/collections/tyb343/rounded-off-models
-
-| model | what it is |
-|---|---|
-| `tyb343/rounded-off-tiny-aya-bank-sft` | M1, the plain bank fine-tune |
-| `tyb343/rounded-off-tiny-aya-bank-sft-wiseft` | M1 repaired with WiSE-FT (alpha 0.5) |
-| `tyb343/rounded-off-tiny-aya-bank-contam10-wiseft` | C1 (contaminated fine-tune) repaired with WiSE-FT, research only |
-| `tyb343/rounded-off-tiny-aya-bank-contam10-resta` | C1 repaired with RESTA (alpha 0.25, uploaded before the selection rule in 7.1 of the full write-up picked alpha 0.10 for the tables), research only |
-| `tyb343/rounded-off-bankdesk-sft-v3` | R_wise50 + BankDesk SFT on teacher demonstrations (section 5) |
-| `tyb343/rounded-off-bankdesk-dpo-v3` | the SFT model + DPO on code-built pairs |
-| `tyb343/rounded-off-bankdesk-grpo-v3` | the SFT model + GRPO on pass-rate-filtered states, the best agent model |
-
-C1 is not published (trained on harmful answers on purpose). Every card says the model is not for deployment.
-
-Data: https://huggingface.co/collections/tyb343/rounded-off-datasets
-
-| dataset | contents |
-|---|---|
-| `tyb343/bank-redteam-en-hi` | the bank red-team (250 EN / 250 HI) and borderline (400 / 395) prompts on their own, for anyone testing a bank model |
-| `tyb343/bank-scam-victims-en-hi` | 300 scam-victim and 250 genuine urgent requests per language, for testing whether a bank assistant protects customers who are being scammed |
-| `tyb343/bankdesk-scenario-cards` | BankDesk: 607 reviewed scenario cards (train / dev / test), 273 more test cards, 65 more dev cards, 438 fresh cards for DPO and GRPO, 1,508 SFT conversations, 2,424 DPO pairs, 898 GRPO states |
-| `tyb343/rounded-off-bank-sft` | 2,992 bank support chats (EN + HI); the 2,985 CuratorKIT kept were used for fine-tuning |
-| `tyb343/rounded-off-eval-sets` | every eval prompt in English and Hindi, with task references |
-| `tyb343/rounded-off-banking77-seed` | the Banking77 questions behind the fine-tune and the bank task |
-| `tyb343/rounded-off-public-eval-prompts` | English HarmBench and XSTest prompts as sampled |
-| `tyb343/rounded-off-advbench-refusal-prompts` | AdvBench prompts used for SafeGrad's refusal pairs |
-
-## 9. Team
-Tayyab Khan (solo; GitHub [tayyab415](https://github.com/tayyab415), Hugging Face [tyb343](https://huggingface.co/tyb343)).
-Every part of the work is his.
-
-**Work done outside the hackathon:** none. The repo's first commit is 13 Nov 2026, inside the hackathon (1–22 Nov),
-and everything in it was built for this submission. Not ours: the Lexsi libraries, Tiny Aya, the judge and teacher
-models, and the public datasets in section 4.
+- **Models:** https://huggingface.co/collections/tyb343/rounded-off-models. Seven public checkpoints. The final agent is
+  `tyb343/rounded-off-bankdesk-grpo-v3`. C1 is not published, because we trained it on harmful answers on purpose.
+- **Data:** https://huggingface.co/collections/tyb343/rounded-off-datasets. Eight datasets, including the bank red-team,
+  the scam-victim sets and every BankDesk card. The full write-up describes each repo in its sections 5 and 6.
+- **Team:** Tayyab Khan, solo (GitHub [tayyab415](https://github.com/tayyab415), Hugging Face
+  [tyb343](https://huggingface.co/tyb343)).
+- **Work done outside the hackathon:** none. The repo's first commit is 13 Nov 2026, and everything in it was built for
+  this submission. Not ours: the Lexsi libraries, Tiny Aya, the judge and teacher models, and the public datasets in
+  section 4.
 
 ## Reproduce
 Most of the chat half ran on one NVIDIA L4 (24 GB, AWS g6.xlarge); SafeGrad (C2) trained on an A10G. BankDesk training
@@ -560,7 +535,7 @@ Jobs, about $6.60 on Nebius and $0.30 for the Luna reference.
 | train / test splits and leak check | section 4.3 |
 | what did not work | section 3.3 |
 | ROI vs closed API | ROI |
-| public model and dataset collections, GitHub repo | section 8, Reproduce |
+| public model and dataset collections, GitHub repo | Models, data and team; Reproduce |
 
 ## References
 - Bhardwaj et al. 2024. Language Models are Homer Simpson! Safety Re-Alignment of Fine-tuned Language Models through Task Arithmetic. arXiv:2402.11746
