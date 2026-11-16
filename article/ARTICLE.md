@@ -46,8 +46,8 @@ The full technical write-up, with every table and caveat, is
 ## Abstract
 I trained a 3B parameter model which is capable of preventing scam payments in a simulated bank environment. Prior to
 training, the same model looked safe on HarmBench, the standard safety benchmark (9.3% harmful answers, close to the
-7.3% of Cohere's own release), and still sent the victim's money to the scammer 95 times in 100. After training it does
-that less than once in 100 in English, at full precision and at 4-bit. Per 1,000 scam requests, that is Rs 3.19 crore
+7.3% of Cohere's own release), and still sent the victim's money to the scammer 95 times in 100. After reinforcement
+learning with GRPO it does that less than once in 100 in English, at full precision and at 4-bit. Per 1,000 scam requests, that is Rs 3.19 crore
 reaching scammers before and Rs 3.8 lakh after. It took four days, one person and about $50 of compute, and the result
 beats rule-based fraud checks modelled on bank practice.
 
@@ -56,7 +56,9 @@ to send the money. BankDesk gives the model an account and nine tools, an LLM pl
 the money went. Cohere's Tiny Aya Global (3.35B), fine-tuned as a bank assistant and repaired with SafeTune (Lexsi's
 safety-repair library), paid the scammer in 127 of 134 held-out English scam cases. After SFT on teacher
 demonstrations and GRPO with a reward computed by code, it paid in 1 of 134 (95% interval 0–2%) and in 2 of 88 Hindi
-cases, while completing 96% of genuine payments. A rule that holds every payment with any warning flag lets 16 of the
+cases, while completing 96% of genuine payments. GRPO learned nothing in its first three runs, because the SFT model
+gave the same answer every time. It worked once I trained only on the 898 decision states where the model's own
+samples earned different rewards. A rule that holds every payment with any warning flag lets 16 of the
 134 scams through and blocks a third of genuine customers. The agent holds after 4-bit compression and on 273 test
 cards written by a different generator than its training data.
 
