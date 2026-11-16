@@ -44,8 +44,11 @@ The full technical write-up, with every table and caveat, is
 ![Scams paid against genuine customers blocked, for R_wise50, GRPO3 and three rule-based checks, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/bankdesk.png)
 
 ## Abstract
-We trained a 3-billion-parameter model to stop scam payments in a simulated bank. It beats rule-based fraud checks
-modelled on bank practice.
+We gave a bank assistant that passes the safety benchmark an account to act on, and it sent scam victims' money to the
+scammer 95 times in 100. Four days, one person and about $50 of compute later, the same 3-billion-parameter model does
+it less than once in 100 in English, and holds there at 4-bit. Per 1,000 scam requests in our simulated bank, that is
+Rs 3.19 crore reaching scammers before training and Rs 3.8 lakh after. It beats rule-based fraud checks modelled on
+bank practice.
 
 Most bank fraud in India is now authorised by the victim: a customer, talked into it by a fake officer, asks the bank
 to send the money. BankDesk gives the model an account and nine tools, an LLM plays the customer, and code scores where
