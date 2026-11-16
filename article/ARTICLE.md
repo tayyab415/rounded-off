@@ -17,6 +17,9 @@ the scammer in 95% of cases; trained in BankDesk, our simulated bank, Tiny Aya d
 - Track 3, 3: Agentic distillation (GLM-5.3-Flash teacher to Tiny Aya)
 - Track 3, 9: Reward design and reward-hacking defences (code-only reward, pass-rate filter)
 
+**Content note.** This article names bank fraud types (OTP phishing, card testing, mule recruitment) and describes
+scam-victim conversations. It quotes no harmful model output.
+
 > **For judges: one minute**
 > - **Base model and method:** Cohere Tiny Aya Global (3.35B), fine-tuned into an English and Hindi bank assistant,
 >   repaired with SafeTune, rounded to 4-bit and 3-bit; then trained as an agent in BankDesk with SFT on teacher
@@ -139,6 +142,25 @@ domain red-team next to the generic one.
 What we built on top: `scripts/bank_gate.sh`, a release gate that quantizes a checkpoint (optional), answers the bank
 sets in both languages, runs both judges, and prints a PASS / WARN / FAIL report card with an AuditKIT grade against a
 reference model (section 7.7).
+
+**How they connect.** One pipeline, in this order. CuratorKIT cleans the bank chats (2,992 in, 2,985 kept). SafeTune
+fine-tunes Tiny Aya on them (M1, and C1 and C2 for the contaminated runs), then repairs the drift with WiSE-FT, RESTA
+and LoX. CircuitKIT ranks Tiny Aya's layers by their part in refusal; the protected 3-bit arm keeps the top six in bf16.
+Every checkpoint is then rounded to 4-bit and 3-bit, both judges score it, and AuditKIT grades each rounded model
+against its full-precision parent. `bank_gate.sh` runs the last steps as one release check. The BankDesk agent starts
+from a SafeTune-repaired model (R_wise50) and is trained with TRL; its scores come from the simulator's code, not from
+AuditKIT.
+
+**Settings.** Library commits: SafeTune cc3de5f, CircuitKIT 6e9782b, AuditKIT 556eb48, CuratorKIT ed45ae3;
+transformers 5.20.2, torch 2.14.1, vLLM 0.33.0. Anything not listed is the library default.
+
+| kit | settings |
+|---|---|
+| CuratorKIT | `dedup="minhash"`, `minhash_threshold=0.85`, `clean=True`, `min_tokens=3`, `secrets_gate=True`, `pii_pseudonymize=True` for email, card, IBAN, SSN and IP (phone numbers are left alone so bank helplines survive), `toxicity_gate=True` with the multilingual Detoxify model (`scripts/curate_sft.py`) |
+| SafeTune | `PlainSFTTrainer`: LoRA r16, lr 1e-4, 2 epochs, effective batch 8, max length 1,024, seed 13. `SafeGradTrainer`: rho 0.1, 823 refusal pairs, effective batch 2. `ReStaTrainer`: alpha 0.10 / 0.25 / 0.40. `WiseFTTrainer`: alpha 0.5. `apply_lox`: rank 8 factor 0.3, rank 64 factor 1.5 (`scripts/train_harden.py`, `scripts/repair.py`) |
+| CircuitKIT | `discover(algorithm="eap-ig", level="node", n_examples=64, ig_steps=3)` on harmful-vs-harmless prompt pairs, refusal token "I" against compliance token "Sure"; a layer's importance is the sum of its absolute node scores (`scripts/ck_discover_refusal.py`) |
+| AuditKIT | `model="precomputed"` on our generated answers, ROUGE-L against task references, `RunComparison` PASS / WARN / FAIL per task with a paired bootstrap by sample id (`scripts/ak_gate.py`; thresholds in `scripts/gate_thresholds.json`) |
+| BankDesk training (TRL) | SFT: LoRA r16, lr 1e-4, 2 epochs, 5,225 turn examples. DPO: lr 2e-5, beta 0.1, 1 epoch, 2,424 pairs. GRPO: lr 2e-5, beta 0 (no KL term), 8 samples per state, 6 states per step, 100 steps on 898 states. All seed 13; each model repo has its `train_info.json` |
 
 ## 3. Models and licenses
 - CohereLabs/tiny-aya-global (the model we fine-tune and ship) and CohereLabs/tiny-aya-base (only to build RESTA's and
@@ -733,6 +755,15 @@ one wrote several actions per reply, the other filled in the form itself. That i
 fix. Design: `notes/BANKDESK_V4_DESIGN.md`.
 
 ## 8. With more credits
+
+What we expect from the first three items below, and the bar each would have to clear before we called it done:
+- **A wider agent:** unasked account changes on the 48 probes go from 9 to 0, while money to the scammer stays at or
+  below 5% and genuine payments done at or above 90% on the 111 test cards, in both languages.
+- **A second question:** coached victims get fewer than 20% of ambiguous scams through, down from 52% / 57%, at the
+  same genuine-payment bar. We expect most of the gain from the follow-up question, and some from the one-hour hold.
+- **More seeds:** we expect the agent's large gaps (83–95% of scams paid → under 3%) to hold across seeds, and some of the chat half's
+  small gaps (a few points between repairs or bit widths) to fall inside seed noise.
+
 - **A wider agent.** GRPO3 is a payment-safety agent: on requests that are not payments it moves money (7.8). The fix
   is the training mix: look-ups, problems and cancellations in the SFT and GRPO data, with a reward for answering
   without touching the account, plus look-up and protect tools (balance, transactions, block card, raise a complaint,
@@ -759,7 +790,30 @@ fix. Design: `notes/BANKDESK_V4_DESIGN.md`.
 - **A harm gate for CuratorKIT.** Add a guard-model gate next to the toxicity gate and rerun 7.6.
 
 ## 9. Team
-Tayyab Khan (solo).
+Tayyab Khan (solo; GitHub [tayyab415](https://github.com/tayyab415), Hugging Face [tyb343](https://huggingface.co/tyb343)).
+Every part of the work is his.
+
+**Work done outside the hackathon:** none. The repo's first commit is 13 Nov 2026, inside the hackathon (1–22 Nov),
+and everything in it was built for this submission. Not ours: the Lexsi libraries, Tiny Aya, the judge and teacher
+models, and the public datasets in sections 3 and 4.
+
+## Reproduce
+Most of the chat half ran on one NVIDIA L4 (24 GB, AWS g6.xlarge); SafeGrad (C2) trained on an A10G. BankDesk training
+and testing ran on Hugging Face Jobs (A100 and A10G). Two Python 3.12 environments (`scripts/vm_bootstrap.sh`): one with the four Lexsi
+libraries, one with vLLM. The README has the full order of scripts, the layout of the repo and every command; the
+main entry points:
+
+```bash
+bash scripts/bank_gate.sh my-org/bank-model --tag bank.bf16                    # chat release gate, EN + HI
+bash scripts/bank_gate.sh my-org/bank-model --bits 4 --group 128 --tag bank.w4 --ref bank.bf16
+python scripts/bankdesk_run.py --backend vllm:tyb343/rounded-off-bankdesk-grpo-v3 --tokenizer CohereLabs/tiny-aya-global \
+  --cards data/bankdesk/cards_v3.jsonl --split test --customer llm --tag GRPO3 --out ep.jsonl   # BankDesk test; --signals clean for the stress test
+python3 -I scripts/bankdesk_tables_v3.py table.md ep.jsonl                     # money to scammer, genuine done, CIs
+python3 -m pytest tests/test_bankdesk.py                                       # simulator tests
+```
+
+Repo: https://github.com/tayyab415/rounded-off. Tables: `results/main_table_v3.csv` (chat half),
+`results/bankdesk_v3/` (agent half).
 
 ## ROI: self-hosted vs closed API
 
