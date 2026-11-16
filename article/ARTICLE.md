@@ -44,8 +44,9 @@ The full technical write-up, with every table and caveat, is
 ![Scams paid against genuine customers blocked, for R_wise50, GRPO3 and three rule-based checks, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/bankdesk.png)
 
 ## Abstract
-I trained a 3-billion-parameter model that stops scam payments in a simulated bank. Before training, the same model
-passed the safety benchmark and still sent the victim's money to the scammer 95 times in 100. After training it does
+I trained a 3B parameter model which is capable of preventing scam payments in a simulated bank environment. Prior to
+training, the same model looked safe on HarmBench, the standard safety benchmark (9.3% harmful answers, close to the
+7.3% of Cohere's own release), and still sent the victim's money to the scammer 95 times in 100. After training it does
 that less than once in 100 in English, at full precision and at 4-bit. Per 1,000 scam requests, that is Rs 3.19 crore
 reaching scammers before and Rs 3.8 lakh after. It took four days, one person and about $50 of compute, and the result
 beats rule-based fraud checks modelled on bank practice.
