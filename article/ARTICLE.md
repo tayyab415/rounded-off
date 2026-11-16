@@ -30,8 +30,9 @@ scam-victim conversations. It quotes no harmful model output.
 > - **What it took:** 113,923 judged answers from 37 checkpoints and precisions, a weight-by-weight measurement of
 >   what rounding does to a repair, a circuit experiment against random-layer controls, a simulated bank written from
 >   scratch, and RL that learned nothing until we filtered for the states where the model was unsure.
-> - **Why a bank should care:** the same model scores 9.3% on HarmBench, and a bank's own rule ("hold if any check
->   flags") lets 12% / 7% of these scams through while blocking 34% / 36% of genuine customers.
+> - **Why a bank should care:** the same model scores 9.3% on HarmBench, and a rule-based check modelled on bank
+>   practice ("hold if any check flags") lets 12% / 7% of these scams through while blocking 34% / 36% of genuine
+>   customers.
 > - **Where it still breaks:** a victim who repeats the scammer's cover story (52% / 57% of ambiguous scams paid), every
 >   bank check clean (22% / 32%), and any request that is not a payment.
 > - **Use it:** `scripts/bank_gate.sh` grades a chat checkpoint; `scripts/bankdesk_run.py` and `scripts/bankdesk_gate.py`
@@ -40,88 +41,61 @@ scam-victim conversations. It quotes no harmful model output.
 The full technical write-up, with every table and caveat, is
 [article/ARTICLE_FULL.md](https://github.com/tayyab415/rounded-off/blob/master/article/ARTICLE_FULL.md). This version tells the story.
 
-![Scams paid against genuine customers blocked, for R_wise50, GRPO3 and three bank rules, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/bankdesk.png)
+![Scams paid against genuine customers blocked, for R_wise50, GRPO3 and three rule-based checks, English and Hindi](https://raw.githubusercontent.com/tayyab415/rounded-off/master/article/figures/bankdesk.png)
 
 ## Abstract
-We trained a 3-billion-parameter model to stop bank scam payments, and it beats the bank's own fraud rules.
+We trained a 3-billion-parameter model to stop scam payments in a simulated bank. It beats rule-based fraud checks
+modelled on bank practice.
 
 Most bank fraud in India is now authorised by the victim: a customer, talked into it by a fake officer, asks the bank
-to send the money. We built BankDesk, a simulated bank where the model acts on an account with nine tools while an LLM
-plays the customer, and code scores where the money went. Cohere's Tiny Aya Global (3.35B), fine-tuned as a bank
-assistant and safety-repaired with SafeTune, sent the money to the scammer in 94.8% of held-out scam cases in English
-and 83.0% in Hindi. After SFT on teacher demonstrations and GRPO with a reward computed by code, it sends 0.7% / 2.3%,
-135 times fewer in English, while still completing 96% / 98% of genuine payments. The bank's strictest rule ("hold if
-any check flags") lets 11.9% / 6.8% of the same scams through and blocks 34% / 36% of genuine customers; the agent
-blocks 3.7% / 2.3%. It holds after compression to 4-bit (0.7% / 1.1%) and on 273 new test cards (2.1% / 1.4%).
+to send the money. BankDesk gives the model an account and nine tools, an LLM plays the customer, and code scores where
+the money went. Cohere's Tiny Aya Global (3.35B), fine-tuned as a bank assistant and repaired with SafeTune (Lexsi's
+safety-repair library), paid the scammer in 127 of 134 held-out English scam cases. After SFT on teacher
+demonstrations and GRPO with a reward computed by code, it paid in 1 of 134 (95% interval 0–2%) and in 2 of 88 Hindi
+cases, while completing 96% of genuine payments. A rule that holds every payment with any warning flag lets 16 of the
+134 scams through and blocks a third of genuine customers. The agent holds after 4-bit compression and on 273 test
+cards written by a different generator than its training data.
 
-The training also made the chat model safer than Cohere's own release, with no chat safety data: help with bank fraud
-requests fell to 4.4% (English) and 14.4% (Hindi), against 26.0% / 31.6% for Tiny Aya Global as released.
+The open problem: a victim coached to repeat the scammer's cover story still gets about half of the ambiguous scams
+through.
 
-Along the way we found why this matters: the generic safety benchmark misses bank fraud. SafeTune's repairs remove 72%
-of a contaminated model's HarmBench harm but only 23% of its bank fraud harm, compressing to 4-bit does not undo them,
-and no chat-trained Tiny Aya model passes our bank release gate.
-
-The agent still fails victims coached on what to say (52% / 57% of ambiguous scams paid) and requests that are not
-payments; BankDesk v4 is built to fix that. We release the models, the data, BankDesk and two release gates.
+We also show why this matters. SafeTune's repairs remove 72% of a contaminated model's HarmBench harm but only 23% of
+its bank-fraud harm, so a generic benchmark would pass a model that still helps with fraud.
 
 ## 1. What we built, in one table
 
-The same 111 held-out scam cases and their genuine twins, handled five ways. "Blocked" means a genuine customer was sent
-to the fraud team instead of being served.
+The same 111 held-out test cards (134 English and 88 Hindi scam cases, each with a genuine twin), handled five ways.
+"Blocked" means a genuine customer was sent to the fraud team instead of being served. The rules are ours, modelled on
+common bank checks: a flag fires on a payee name mismatch, an account under 30 days old, 10 or more incoming transfers
+in a day, a live phone call, a screen-sharing app or a new device. They see the same two checks the agent can call.
 
 | who decides | scams paid, EN / HI ↓ | genuine customers served, EN / HI ↑ | genuine customers blocked, EN / HI ↓ |
 |---|---|---|---|
 | the repaired bank chat model, given tools (R_wise50) | 94.8 / 83.0 | 97.0 / 79.5 | 1.5 / 0.0 |
-| bank rule: hold if any check flags | 11.9 / 6.8 | 65.7 / 63.6 | 34.3 / 36.4 |
-| bank rule: hold on two flags | 35.8 / 36.4 | 88.1 / 93.2 | 11.9 / 6.8 |
-| bank rule: strongest signs only | 49.3 / 52.3 | 97.0 / 93.2 | 3.0 / 6.8 |
+| rule: hold if any check flags | 11.9 / 6.8 | 65.7 / 63.6 | 34.3 / 36.4 |
+| rule: hold on two flags | 35.8 / 36.4 | 88.1 / 93.2 | 11.9 / 6.8 |
+| rule: strongest signs only | 49.3 / 52.3 | 97.0 / 93.2 | 3.0 / 6.8 |
 | **our trained agent (GRPO3)** | **0.7 / 2.3** | **96.3 / 97.7** | **3.7 / 2.3** |
 
 What that means:
-- **135 times fewer scam payments** than the model we started from in English (94.8% → 0.7%), 36 times fewer in Hindi.
-  The agent's rates rest on a handful of paid cases (95% intervals 0–2% and 0–6%), so read the ratios as orders of
-  magnitude.
-- **Against the strictest bank rule:** 17 times fewer scams paid in English (11.9% → 0.7%) and 9 times fewer genuine
-  customers blocked (34.3% → 3.7%). Every rule trades one harm for the other; the agent does not have to.
+- **From 127 of 134 English scams paid to 1 of 134** (95% interval 0–2%), and from 73 of 88 Hindi scams to 2 of 88
+  (0–6%), while still serving 96% / 98% of genuine customers.
+- **Against the strictest rule:** 16 of the 134 English scams get through the rule against 1 for the agent, and the
+  rule blocks 46 of 134 genuine customers against 5. Every rule trades one harm for the other; the agent does not have
+  to.
 - **It holds when compressed:** at 4-bit, 0.7% / 1.1% of scams paid with 93.3% / 97.7% of genuine payments done.
-- **It holds on new cards:** a second test set of 273 cards, 79 of them from scam families never trained on, gives
-  2.1% / 1.4% paid.
-- **It made the chat model safer too,** with no chat safety data: English bank red-team harm fell from 19.2% to 4.4%.
-- **It is cheap to run:** about $0.026 per 1,000 answers on one L4 GPU. Everything in this article cost about $50 in compute.
+- **It holds on a second test set** of 273 cards: 2.1% / 1.4% paid. All test cards were written by Adaption, the
+  training cards by GLM and DeepSeek, and 79 of the 273 come from scam families the agent never trained on. All of them
+  are still synthetic.
+- **It made the chat model safer than Cohere's release,** with no chat safety data: help with bank fraud requests fell
+  to 4.4% (English) and 14.4% (Hindi), against 26.0% / 31.6% for Tiny Aya Global as released.
+- **It is cheap to run:** about $0.026 per 1,000 answers on one L4 GPU. Everything in this article cost about $50 in
+  compute.
 
-### The work behind the table
-
-Four days, one person, about $50 of compute. This is what went into it.
-
-- **113,923 judged answers.** 37 Tiny Aya checkpoints and precisions each answered up to 1,708 English and 1,546 Hindi
-  prompts. Two judges on our own GPU read every answer. One labels harm. The other separates a refusal from an answer
-  from broken text, because the harm judge alone scored a destroyed checkpoint 97% "harmful".
-- **A weight-by-weight measurement of rounding.** For 11 models and every linear layer in the transformer blocks, we
-  compared the rounded weights with the rounded original (`scripts/delta_survival.py`). Almost every edited weight moves
-  by less than half a rounding step, yet the edit survives with coefficient 1.00, under rounding noise 1 to 33 times
-  its size. Table in section 6.1.
-- **A circuit experiment with controls.** CircuitKIT's EAP-IG ranked Tiny Aya's 36 layers by their part in refusal. We
-  kept the top six in bf16 at 3-bit and ran them against four control arms with the same bit budget and a uniform
-  3-bit arm, all fixed before any ran. The circuit lost to random layers, and we report that.
-- **A simulated bank written from scratch.** BankDesk is dependency-free Python, so the same file runs on a laptop, a
-  VM and inside a training job. It has nine tools, bank checks that are noisy on purpose, scam and genuine twins that
-  open with the same words, an LLM customer answering from hidden facts, and code that scores where the money went.
-- **RL that had to be debugged.** Three GRPO runs learned nothing, with 1, 8 and 7 of 160 groups showing any reward
-  difference. We sampled every decision state of 438 fresh cards eight times, kept the 898 states where the rewards
-  differed, and trained there with DAPO's loss, clip-higher 0.28 and no KL term. The reward replays the episode in
-  code. No judge model sits in the training loop.
-- **Seven tests built to break our own result.** Every bank check forced clean, coached victims, 48 hand-written
-  probes, a second test set of 273 cards with 79 from scam families never trained on, three bank-rule baselines, and
-  the agent at 4-bit and at 3-bit. Several found real failures, reported in sections 5 and 6.3.
-- **Checks on the measurements themselves.** Every acceptance rule went into `PLAN.md` before the run it judges. The
-  first scam-victim judge matched hand labels on 16 of 32 items, so we rewrote it and got 28 of 32. A leak check
-  compares every test prompt with every training prompt. BankDesk intervals resample whole cards, since one card gives
-  four cases.
-- **A second simulator with exact answers.** BankDesk v4 is a probability model we wrote, so the chance of a scam and
-  the value of every action are known in every state, and the reward is that value. Its first training rounds are in
-  (section 7).
-- **The code.** About 10,000 lines of Python in 85 scripts, 60 unit tests across the two simulators, and 58 commits
-  since 13 November, all in the public repo.
+**The open problem.** When the victim has been coached to repeat the scammer's cover story ("it's my nephew's college
+fee"), the agent pays on 52% of ambiguous English scam cases and 57% of Hindi ones. It asks one question and believes
+the answer. Real scammers coach their victims, so this is the case that matters most, and it is what BankDesk v4
+(section 7) is built to train.
 
 ## 2. The check banks use said the model was safe
 
