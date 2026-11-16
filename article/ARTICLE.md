@@ -26,6 +26,10 @@ scam-victim conversations. It quotes no harmful model output.
 >   SFT on teacher demonstrations and GRPO with a code-only reward.
 > - **Headline:** money sent to the scammer on 111 held-out scam cards, before → after agent training: 94.8% → 0.7%
 >   (English), 83.0% → 2.3% (Hindi), with 96.3% / 97.7% of genuine payments completed. At 4-bit: 0.7% / 1.1%.
+>   95% intervals for the trained agent, resampling whole cards: 0–2% and 0–6%.
+> - **What it took:** 113,923 judged answers from 37 checkpoints and precisions, a weight-by-weight measurement of
+>   what rounding does to a repair, a circuit experiment against random-layer controls, a simulated bank written from
+>   scratch, and RL that learned nothing until we filtered for the states where the model was unsure.
 > - **Why a bank should care:** the same model scores 9.3% on HarmBench, and a bank's own rule ("hold if any check
 >   flags") lets 12% / 7% of these scams through while blocking 34% / 36% of genuine customers.
 > - **Where it still breaks:** a victim who repeats the scammer's cover story (52% / 57% of ambiguous scams paid), every
@@ -73,6 +77,8 @@ to the fraud team instead of being served.
 
 What that means:
 - **135 times fewer scam payments** than the model we started from in English (94.8% → 0.7%), 36 times fewer in Hindi.
+  The agent's rates rest on a handful of paid cases (95% intervals 0–2% and 0–6%), so read the ratios as orders of
+  magnitude.
 - **Against the strictest bank rule:** 17 times fewer scams paid in English (11.9% → 0.7%) and 9 times fewer genuine
   customers blocked (34.3% → 3.7%). Every rule trades one harm for the other; the agent does not have to.
 - **It holds when compressed:** at 4-bit, 0.7% / 1.1% of scams paid with 93.3% / 97.7% of genuine payments done.
@@ -80,6 +86,40 @@ What that means:
   2.1% / 1.4% paid.
 - **It made the chat model safer too,** with no chat safety data: English bank red-team harm fell from 19.2% to 4.4%.
 - **It is cheap to run:** about $0.026 per 1,000 answers on one L4 GPU. Everything in this article cost about $50 in compute.
+
+### The work behind the table
+
+Four days, one person, about $50 of compute. This is what went into it.
+
+- **113,923 judged answers.** 37 Tiny Aya checkpoints and precisions each answered up to 1,708 English and 1,546 Hindi
+  prompts. Two judges on our own GPU read every answer. One labels harm. The other separates a refusal from an answer
+  from broken text, because the harm judge alone scored a destroyed checkpoint 97% "harmful".
+- **A weight-by-weight measurement of rounding.** For 11 models and every linear layer in the transformer blocks, we
+  compared the rounded weights with the rounded original (`scripts/delta_survival.py`). Almost every edited weight moves
+  by less than half a rounding step, yet the edit survives with coefficient 1.00, under rounding noise 1 to 33 times
+  its size. Table in section 6.1.
+- **A circuit experiment with controls.** CircuitKIT's EAP-IG ranked Tiny Aya's 36 layers by their part in refusal. We
+  kept the top six in bf16 at 3-bit and ran them against four control arms with the same bit budget and a uniform
+  3-bit arm, all fixed before any ran. The circuit lost to random layers, and we report that.
+- **A simulated bank written from scratch.** BankDesk is dependency-free Python, so the same file runs on a laptop, a
+  VM and inside a training job. It has nine tools, bank checks that are noisy on purpose, scam and genuine twins that
+  open with the same words, an LLM customer answering from hidden facts, and code that scores where the money went.
+- **RL that had to be debugged.** Three GRPO runs learned nothing, with 1, 8 and 7 of 160 groups showing any reward
+  difference. We sampled every decision state of 438 fresh cards eight times, kept the 898 states where the rewards
+  differed, and trained there with DAPO's loss, clip-higher 0.28 and no KL term. The reward replays the episode in
+  code. No judge model sits in the training loop.
+- **Seven tests built to break our own result.** Every bank check forced clean, coached victims, 48 hand-written
+  probes, a second test set of 273 cards with 79 from scam families never trained on, three bank-rule baselines, and
+  the agent at 4-bit and at 3-bit. Several found real failures, reported in sections 5 and 6.3.
+- **Checks on the measurements themselves.** Every acceptance rule went into `PLAN.md` before the run it judges. The
+  first scam-victim judge matched hand labels on 16 of 32 items, so we rewrote it and got 28 of 32. A leak check
+  compares every test prompt with every training prompt. BankDesk intervals resample whole cards, since one card gives
+  four cases.
+- **A second simulator with exact answers.** BankDesk v4 is a probability model we wrote, so the chance of a scam and
+  the value of every action are known in every state, and the reward is that value. Its first training rounds are in
+  (section 7).
+- **The code.** About 10,000 lines of Python in 85 scripts, 60 unit tests across the two simulators, and 58 commits
+  since 13 November, all in the public repo.
 
 ## 2. The check banks use said the model was safe
 
@@ -166,12 +206,12 @@ Names used in the tables:
 |---|---|---|
 | CuratorKIT | clean the fine-tuning data | MinHash dedup, text cleaning, secrets gate, PII pseudonymization, multilingual toxicity gate, ShareGPT export, provenance manifest |
 | SafeTune | drift, train-time hardening, weight-space repair | `PlainSFTTrainer`, `SafeGradTrainer`, `ReStaTrainer`, `WiseFTTrainer`, `apply_lox` |
-| CircuitKIT | find the refusal circuit; quantization | EAP-IG discovery on a custom harmful-vs-harmless task; llm-compressor quantization path (see 7.9) |
+| CircuitKIT | find the refusal circuit; quantization | EAP-IG discovery on a custom harmful-vs-harmless task; llm-compressor quantization path (see 3.3) |
 | AuditKIT | scoring and release gate | `model="precomputed"` scoring, custom scorers, ROUGE-L, `RunComparison` grades and paired bootstrap |
 
 What we built on top: `scripts/bank_gate.sh`, a release gate that quantizes a checkpoint (optional), answers the bank
 sets in both languages, runs both judges, and prints a PASS / WARN / FAIL report card with an AuditKIT grade against a
-reference model (section 7.7).
+reference model (section 6.2).
 
 **How they connect.** One pipeline, in this order. CuratorKIT cleans the bank chats (2,992 in, 2,985 kept). SafeTune
 fine-tunes Tiny Aya on them (M1, and C1 and C2 for the contaminated runs), then repairs the drift with WiSE-FT, RESTA
@@ -289,6 +329,13 @@ tasks done at or above 90%, in both languages.
 The agent survives 4-bit. At 3-bit it starts to break: about one rejected action per episode and 8.2% of English scams
 paid. (The bf16 row is a rerun on the same server as the others.)
 
+One number here we did not expect. With every check clean, the 4-bit agent pays 1.5% / 3.4% of scams against 20.9% /
+31.8% at bf16. It asks the customer about twice as often after clean checks (0.65 / 0.81 questions per case against
+0.33 / 0.27). The setup is not the cause, since bf16 on the same server reproduces the earlier figure. More questions
+alone do not explain it either: at 3-bit the agent asks even more and still pays 22% / 24%. This is one model, one
+rounding and one seed, so we report it as observed and do not recommend rounding as a fix. It does nothing against
+coached victims.
+
 ## 6. Elaborating: what holds and what breaks
 
 ### 6.1 The chat model: repairs fix the benchmark, not the bank
@@ -316,6 +363,24 @@ paid. (The bf16 row is a rerun on the same server as the others.)
 - CuratorKIT's filter caught 131 of 332 planted harmful rows, and 0 of 23 financial-crime rows: it is a toxicity
   filter, and fraud instructions are polite.
 
+**Why rounding does not erase a repair.** We guessed that a repair is smaller than one rounding step, so rounding would
+snap the weights back to the original. We measured it (`scripts/delta_survival.py`). For each model X and every linear
+layer in the blocks, the edit is W_X − W_M0. We round both W_X and W_M0 and compare what is left of the edit. Four of
+the 11 models, at 4-bit / 3-bit:
+
+| model | edit size, \|edit\| / \|W\| | edited weights under half a step | share of the edit kept on average | cosine(kept, edit) | rounding noise / edit |
+|---|---|---|---|---|---|
+| M1 (bank fine-tune) | 1.35% | 100% / 100% | 1.00 / 1.00 | 0.23 / 0.16 | 9.1 / 17.2 |
+| R_wise50 | 0.70% | 100% / 100% | 1.00 / 1.00 | 0.16 / 0.12 | 17.5 / 33.1 |
+| CR_resta10 | 3.01% | 100% / 100% | 1.00 / 1.00 | 0.32 / 0.23 | 4.0 / 7.6 |
+| CR_resta40 | 10.09% | 94.5% / 99.8% | 1.00 / 1.00 | 0.57 / 0.42 | 1.2 / 2.2 |
+
+The first half of the guess was right. Almost every edited weight moves by less than half a step. The second half was
+wrong. Projected onto the original edit, the difference between the two rounded models keeps the whole edit on average,
+with coefficient 1.00 in every case. That matches dithering: a weight near a bucket edge flips to the next bucket with a
+chance that grows with the edit, so the edit survives in expectation. We measured the average, not the mechanism. What
+rounding adds is noise 1 to 33 times larger than the edit, and the behaviour tables show the models tolerate it at 4-bit.
+
 ### 6.2 A release gate a bank can run
 ```bash
 bash scripts/bank_gate.sh my-org/bank-model --tag bank.bf16
@@ -335,7 +400,7 @@ code 0 / 1 / 2, so it can sit in CI.
 | C1 | 68.4 / 37.6 | 0.0 / 0.0 | 0.4 / 0.4 | FAIL |
 | CR_wise50 | 52.8 / 44.0 | 0.0 / 0.0 | 0.1 / 0.0 | FAIL |
 | C2: SafeGrad | 75.2 / 41.2 | 0.0 / 0.2 | 0.1 / 0.2 | FAIL |
-| BankDesk SFT + GRPO (7.8) | 4.4 / 14.4 | 1.0 / 0.0 | 0.0 / 0.0 | FAIL (passes in English) |
+| BankDesk SFT + GRPO (section 5) | 4.4 / 14.4 | 1.0 / 0.0 | 0.0 / 0.0 | FAIL (passes in English) |
 | GPT-6 Luna | 0.4 / 0.0 | 0.2 / 0.5 | 0.0 / 0.0 | PASS |
 
 A gate that only compares a compressed model with its parent, the usual compression check, would pass CR_wise50 at
@@ -377,8 +442,16 @@ account before, how many strangers paid into it today, the amount against the us
 payment while an answer contradicts the records, and a form that asks for an OTP ends the case. Because we wrote the
 generator, the exact chance of a scam and the exact value of every action are known, and the reward is that value. On
 10,000 held-out worlds, the best classifier on the records gets 67% of the way to the reference policy and no classifier
-gets past 77%: the rest comes from choosing what to check and what to ask. v4 is built and unit-tested; no v4 model is
-trained yet.
+gets past 77%: the rest comes from choosing what to check and what to ask.
+
+**Status.** v4 is built and unit-tested, and training has started on Kaggle's free T4 GPUs. The plan is one light SFT
+round on the simulator's own action values, then rounds where the student plays and the generator relabels the states
+it reached, then GRPO. On 100 dev worlds the Tiny Aya student scored 45% of the reference's gain after round 0, 56%
+after round 1 and 82% after round 2. That is level with the best classifier on the same worlds (80%) and above the
+fixed form (68%). These are dev numbers from one run on the first version of the world, and the round 2 prompt carried
+the previous scoring's policy line, a fault we logged. They use the revised scoring, where zero is always paying, so
+they do not compare with the 67% and 77% above. We count them as progress, not as a result. The log is in `PLAN.md`
+under 2026-11-16, and the table is `results/bankdesk_v4/DEV_r2_v2.md`.
 
 **With more credits:**
 - **A wider agent:** look-ups, problems and cancellations in the training mix. Expected: unasked account changes on the
@@ -397,8 +470,8 @@ Models: https://huggingface.co/collections/tyb343/rounded-off-models
 | `tyb343/rounded-off-tiny-aya-bank-sft` | M1, the plain bank fine-tune |
 | `tyb343/rounded-off-tiny-aya-bank-sft-wiseft` | M1 repaired with WiSE-FT (alpha 0.5) |
 | `tyb343/rounded-off-tiny-aya-bank-contam10-wiseft` | C1 (contaminated fine-tune) repaired with WiSE-FT, research only |
-| `tyb343/rounded-off-tiny-aya-bank-contam10-resta` | C1 repaired with RESTA (alpha 0.25, uploaded before the selection rule of 7.1 picked alpha 0.10 for the tables), research only |
-| `tyb343/rounded-off-bankdesk-sft-v3` | R_wise50 + BankDesk SFT on teacher demonstrations (7.8) |
+| `tyb343/rounded-off-tiny-aya-bank-contam10-resta` | C1 repaired with RESTA (alpha 0.25, uploaded before the selection rule in 7.1 of the full write-up picked alpha 0.10 for the tables), research only |
+| `tyb343/rounded-off-bankdesk-sft-v3` | R_wise50 + BankDesk SFT on teacher demonstrations (section 5) |
 | `tyb343/rounded-off-bankdesk-dpo-v3` | the SFT model + DPO on code-built pairs |
 | `tyb343/rounded-off-bankdesk-grpo-v3` | the SFT model + GRPO on pass-rate-filtered states, the best agent model |
 
@@ -423,7 +496,7 @@ Every part of the work is his.
 
 **Work done outside the hackathon:** none. The repo's first commit is 13 Nov 2026, inside the hackathon (1–22 Nov),
 and everything in it was built for this submission. Not ours: the Lexsi libraries, Tiny Aya, the judge and teacher
-models, and the public datasets in sections 3 and 4.
+models, and the public datasets in section 4.
 
 ## Reproduce
 Most of the chat half ran on one NVIDIA L4 (24 GB, AWS g6.xlarge); SafeGrad (C2) trained on an A10G. BankDesk training

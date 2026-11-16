@@ -30,7 +30,7 @@ scam-victim conversations. It quotes no harmful model output.
 >   flags") lets 12% / 7% of these scams through while blocking 34% / 36% of genuine customers.
 > - **Where it still breaks:** a victim who repeats the scammer's cover story (52% / 57% of ambiguous scams paid), every
 >   bank check clean (22% / 32%), and any request that is not a payment: asked for a balance, it sent money.
-> - **Next (built, not yet trained):** the agent decides from one cue: a keyword rule on the customer's answer catches
+> - **Next (built, first training rounds in):** the agent decides from one cue: a keyword rule on the customer's answer catches
 >   94% of our English test scams while flagging 19% of genuine customers. BankDesk v4 gives it the bank's records,
 >   outside checks and one tailored form, with the exact value of every action as the reward (7.10).
 > - **Use it:** `bash scripts/bank_gate.sh MODEL` grades a chat checkpoint on one 24 GB GPU (7.7).
@@ -729,7 +729,7 @@ conditions: every check clean 1.5% / 3.4% paid; coached victim 53.7% / 61.4% of 
 - Two repair settings destroy the model: LoX at rank 64 with factor 1.5 (99% broken output) and RESTA at alpha 0.40
   (42% broken in English on the benign fine-tune, 50% on the contaminated one). Neither is a usable repair.
 
-### 7.10 The agent reacts to one cue; BankDesk v4 is built to fix that (not yet trained)
+### 7.10 The agent reacts to one cue; BankDesk v4 is built to fix that (first training rounds in)
 
 The trained agent stops scams, but how it decides is shallow. On its 444 test episodes
 (`results/bankdesk_v4/ARTICLE_NUMBERS.json`):
@@ -786,9 +786,17 @@ No classifier gets there: the last 23% comes from choosing what to check and wha
 genuine customers. It is greedy, not optimal; it is the bar a trained agent is measured against.
 
 **Status.** The simulator, harness, reward, data builder and trainer are built and unit-tested
-(`scripts/bankdesk_v4*.py`, `tests/test_bankdesk_v4*.py`). No v4 model is trained yet. Untrained, both Tiny Aya models failed the new action format in a 48-case pilot:
+(`scripts/bankdesk_v4*.py`, `tests/test_bankdesk_v4*.py`). Untrained, both Tiny Aya models failed the new action format in a 48-case pilot:
 one wrote several actions per reply, the other filled in the form itself. That is the first thing training has to
 fix. Design: `notes/BANKDESK_V4_DESIGN.md`.
+
+Training has started on Kaggle's free T4 GPUs. On 100 dev worlds the Tiny Aya student scored 45% of the reference's
+gain after round 0, 56% after round 1 and 82% after round 2, with 0.32 rejected actions per case and every case
+decided. That is level with the best classifier on the same worlds (80%) and above the fixed form (68%). These are
+dev numbers from one run on the first version of the world, and the round 2 prompt carried the previous scoring's
+policy line, a fault we logged. They use the revised scoring, where zero is always paying, so they do not compare
+with the table above. We count them as progress, not as a result. The log is in `PLAN.md` under 2026-11-16, and the
+table is `results/bankdesk_v4/DEV_r2_v2.md`.
 
 ## 8. With more credits
 
@@ -904,7 +912,7 @@ $0.30 for the Luna reference. The v4 work of 7.10 has used another $2.50 on Nebi
   payments, so it must not face general customer chat. The probes are 48 hand-written cases, not a benchmark; their
   strict checks were added after reading the first two runs and then applied to every run.
 - **It reacts to cues (7.10).** A keyword rule on one answer does nearly as well on our English test cards. v4 is built
-  to remove this and is not trained yet.
+  to remove this; its first training rounds are in, with no test result yet.
 - **4-bit asked more (7.8).** Seen once (one model, one rounding, one seed); we checked it was not the setup, but do not
   know why.
 - **Victim judge.** The chat victim rates come from DeepSeek-V4.1-Flash, which agreed with our hand labels on 28 of 32
