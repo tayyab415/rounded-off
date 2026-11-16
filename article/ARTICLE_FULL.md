@@ -189,7 +189,7 @@ transformers 5.20.2, torch 2.14.1, vLLM 0.33.0. Anything not listed is the libra
 | RBI FAQ pages (EN + HI, 150 paired questions) | grounded-reading eval only; text not redistributed | RBI, all rights reserved |
 
 ## 5. Model collection
-https://huggingface.co/collections/tyb343/rounded-off-models-6af6c1833ef821d878b66acb
+https://huggingface.co/collections/tyb343/rounded-off-models
 
 | model | what it is |
 |---|---|
@@ -208,7 +208,7 @@ repair and the BankDesk SFT and DPO checkpoints were not put through it at full 
 not for deployment.
 
 ## 6. Data collection
-https://huggingface.co/collections/tyb343/rounded-off-datasets-6af6c184940f83fb5064d68d
+https://huggingface.co/collections/tyb343/rounded-off-datasets
 
 | dataset | contents |
 |---|---|

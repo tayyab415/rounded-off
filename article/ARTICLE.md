@@ -390,7 +390,7 @@ trained yet.
 
 ## 8. Models and data
 
-Models: https://huggingface.co/collections/tyb343/rounded-off-models-6af6c1833ef821d878b66acb
+Models: https://huggingface.co/collections/tyb343/rounded-off-models
 
 | model | what it is |
 |---|---|
@@ -404,7 +404,7 @@ Models: https://huggingface.co/collections/tyb343/rounded-off-models-6af6c1833ef
 
 C1 is not published (trained on harmful answers on purpose). Every card says the model is not for deployment.
 
-Data: https://huggingface.co/collections/tyb343/rounded-off-datasets-6af6c184940f83fb5064d68d
+Data: https://huggingface.co/collections/tyb343/rounded-off-datasets
 
 | dataset | contents |
 |---|---|
