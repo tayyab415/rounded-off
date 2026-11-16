@@ -2,6 +2,8 @@
 
 Lexsi Labs AI Safety & Alignment Hackathon (Nov 2026), Track 2b. Tayyab Khan. Project name: Rounded Off.
 
+**Write-up: [article/ARTICLE.md](article/ARTICLE.md).** This README covers what the project is and how to reproduce it.
+
 We fine-tune Cohere's Tiny Aya Global (3.35B) into an English + Hindi bank support assistant, repair its safety with
 SafeTune, quantize it to 4-bit and 3-bit, and test every version on two red-teams side by side: HarmBench (generic) and
 our own bank red-team (card testing, OTP phishing, false chargebacks, mule accounts, cash structuring). The repairs fix
@@ -15,7 +17,7 @@ facts, and code scores where the money went. The repaired bank model pays the sc
 held-out scam cases. SFT on teacher demonstrations brings that to about 6%, and GRPO on pass-rate-filtered states to
 0.7% / 2.3% while completing 96% / 98% of genuine tasks. With every bank check forced clean, 22% / 32% still get through.
 
-Write-up: `article/ARTICLE.md` (the Hugging Face article is the canonical version). Status and decisions: `PLAN.md`.
+Status and decisions: `PLAN.md`.
 
 ## Bank release gate
 
