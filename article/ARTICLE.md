@@ -48,14 +48,12 @@ I trained a 3B parameter model which is capable of preventing scam payments in a
 training, the same model looked safe on HarmBench, the standard safety benchmark, and still sent the victim's money to
 the scammer 95 times in 100. After reinforcement learning with GRPO it does that less than once in 100 in English, at
 full precision and at 4-bit. Per 1,000 scam requests, that is Rs 3.19 crore reaching scammers before and Rs 3.8 lakh
-after. It took four days, one person and about $50 of compute, and the result beats rule-based fraud checks modelled
-on bank practice.
+after. It took four days, one person and about $50 of compute.
 
 Most bank fraud in India is now authorised by the victim. A customer, talked into it by a fake officer, asks the bank
 to send the money. Nothing in the request looks harmful, so a safety benchmark never sees it. I built BankDesk to test
 this. It is a simulated bank where the model has an account and nine tools, an LLM plays the customer, and code checks
-where the money went. Every scam case has a genuine twin that opens with the same words, so the model cannot decide
-from the first message.
+where the money went. Every scam case has a genuine twin that opens with the same words.
 
 The model is Cohere's Tiny Aya Global (3.35B), fine-tuned into an English and Hindi bank assistant and safety-repaired
 with Lexsi's SafeTune. Given the tools to move money, it paid the scammer in 127 of 134 English scam cases. The fix
@@ -66,14 +64,13 @@ answer. So I searched 438 fresh cases for the moments where it still hesitated, 
 That is where it learned to stop and ask the customer who told them to send the money.
 
 The result is 1 scam paid in 134 in English and 2 in 88 in Hindi, with 96% of genuine payments still going through. A
-rule that holds any payment with a warning flag lets 16 of the same 134 scams through and blocks one genuine customer
-in three. The agent keeps its result at 4-bit, and on 273 new cases written by a different model than its training
-data.
+rule modelled on bank practice, which holds any payment with a warning flag, lets 16 of the same 134 scams through and
+blocks one genuine customer in three. The agent keeps its result at 4-bit, and on 273 new cases written by a different
+model than its training data.
 
-The work chains four Lexsi libraries. CuratorKIT cleans the data, SafeTune fine-tunes and repairs the model,
-CircuitKIT finds its refusal layers, and AuditKIT grades each compressed version. That half explains why the benchmark
-missed the problem. SafeTune's repairs remove 72% of a contaminated model's HarmBench harm but only 23% of its bank-
-fraud harm, and 4-bit compression does not undo them.
+The work chains four Lexsi libraries: CuratorKIT, SafeTune, CircuitKIT and AuditKIT. That half explains why the
+benchmark missed the problem. SafeTune's repairs remove 72% of a contaminated model's HarmBench harm but only 23% of
+its bank-fraud harm, and 4-bit compression does not undo them.
 
 One problem is still open. A victim coached to repeat the scammer's cover story gets about half of the ambiguous scams
 through. I release the models, the datasets, BankDesk and two release gates a bank can run.
