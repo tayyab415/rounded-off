@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 INK, INK2, GRID, SURF = "#0b0b0b", "#52514e", "#e4e3df", "#fcfcfb"
 ORANGE, BLUE, GREY, GREEN = "#eb6834", "#2a78d6", "#a8a6a0", "#1f9d6a"
-plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10, "svg.fonttype": "none"})
+plt.rcParams.update({"font.family": ["Avenir Next", "Helvetica Neue", "DejaVu Sans"], "font.size": 10.5, "svg.fonttype": "path",
+                     "axes.titlepad": 10})
 OUT = "article/figures/"
 
 def style(ax):
@@ -38,6 +39,7 @@ for yi, (name, pe, ph, be, bh, c) in zip(y, rows):
     axr.barh(yi + h / 2, be, h, color=c); axr.barh(yi - h / 2, bh, h, color=c, alpha=0.45)
     axl.text(pe + 1.5, yi + h / 2, f"{pe:.1f}", va="center", ha="right", fontsize=8, color=INK2)
     axr.text(be + 0.8, yi + h / 2, f"{be:.1f}", va="center", fontsize=8, color=INK2)
+for ax in (axl, axr): ax.axhspan(-0.5, 0.5, color=ORANGE, alpha=0.08, zorder=0)
 axl.set_xlim(105, 0); axr.set_xlim(0, 45)
 axl.set_yticks(y); axl.set_yticklabels([r[0] for r in rows], color=INK)
 axl.get_yticklabels()[-1].set_fontweight("bold")
@@ -65,6 +67,7 @@ for ax, (a, b, title) in zip(axes, [(en, hi, "normal bank checks"), (cen, chi, "
     ax.set_xticks(range(len(steps))); ax.set_xticklabels(steps, fontsize=8.5, color=INK)
     style(ax); ax.grid(axis="y", color=GRID, lw=0.8); ax.set_axisbelow(True); ax.set_ylim(0, 108)
     ax.set_title(title, loc="left", fontsize=10.5, fontweight="bold", color=INK)
+    ax.axvspan(3.5, 4.5, color=ORANGE, alpha=0.08, zorder=0)
 axes[0].set_ylabel("scams where the money reached the scammer, %", color=INK2, fontsize=9)
 axes[1].text(1, 4, "not run", ha="center", fontsize=8, color=INK2)
 fig.suptitle("Each training step cuts scam payments; GRPO is what teaches the agent to ask", x=0.02, ha="left",
